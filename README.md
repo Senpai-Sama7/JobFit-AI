@@ -1,5 +1,5 @@
 
-<p align="center">
+<p> align="center">
   <img src="attached_assets/logo.png" alt="JobFit AI" width="300"/>
 </p>
 
