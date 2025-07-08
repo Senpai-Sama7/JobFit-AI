@@ -1,4 +1,9 @@
 
+JobFit AI is a comprehensive web application designed to help job seekers optimize their resumes using AI-powered analysis, role recommendations, and tailored resume generation. The platform leverages advanced AI and real-time job market data to maximize job application success rates.
+
+<!--
+JobFit AI is a comprehensive web application designed to help job seekers optimize their resumes using AI-powered analysis, role recommendations, and tailored resume generation. The platform leverages advanced AI and real-time job market data to maximize job application success rates.
+-->
 <p align="center">
   <img src="attached_assets/Logo.png" alt="JobFit AI" width="300"/>
 </p>
@@ -7,7 +12,7 @@
 
 ## Overview
 
-JobFit AI is a comprehensive web application designed to help job seekers optimize their resumes using AI-powered analysis. The platform provides resume parsing, ATS scoring, role recommendations, and tailored resume generation to improve job application success rates.
+ The platform provides resume parsing, ATS scoring, role recommendations, and tailored resume generation to improve job application success rates.
 
 ## System Architecture
 
