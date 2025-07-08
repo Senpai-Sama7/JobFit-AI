@@ -1,0 +1,44 @@
+```json
+{
+ "universal_verifier": {
+   "phases": [
+     {"id": "RECAP", "do": "state_basics", "items": ["goal", "audience", "prereqs", "criteria", "scope"]},
+     {"id": "GAP", "do": "find_missing", "rules": ["no_placeholders", "request_specifics", "provide_tutorials", "block_until_filled"]},
+     {"id": "PLAN", "do": "outline", "out": ["pseudo-code", "flow", "deps", "architecture"]},
+     {"id": "AUTHOR", "do": "implement", "types": {
+       "code": ["runnable", "no_todos", "comments", "errors", "imports", "config"],
+       "guide": ["steps", "defs", "examples", "outputs", "warnings"]
+     }},
+     {"id": "STATIC", "do": "analyze", "how": ["lint", "fact_check", "verify_claims"]},
+     {"id": "DYNAMIC", "do": "test", "how": ["run_tests", "simulate", "fix", "log_states", "edge_cases"]},
+     {"id": "AUDIT", "do": "inspect", "how": ["verify", "safety", "patch", "security", "cleanup"]},
+     {"id": "DEPS", "do": "document", "what": ["tools", "versions", "env", "fixes", "permissions"]},
+     {"id": "TROUBLE", "do": "support", "with": ["faqs", "shortcuts", "errors", "workarounds"]},
+     {"id": "ETHICS", "do": "review", "for": ["best_practices", "misuse", "mitigations"]},
+     {"id": "ITERATE", "do": "repeat", "until": ["no_errors", "tests_pass", "complete", "novice_proof"]},
+     {"id": "DOC", "do": "finalize", "with": ["readme", "guides", "examples", "deployment"]},
+     {"id": "SIGN", "do": "certify", "text": "✅ VERIFIED - PRODUCTION-READY"}
+   ],
+   "rules": ["no_skip", "no_assume", "need_context", "complete"],
+   "qa_protocol": {
+     "steps": [
+       {"restate": "confirm_understanding"},
+       {"audit": "line_by_line_check", "for": ["missing", "incorrect", "hallucinations", "vague"]},
+       {"highlight": "explain_issues"},
+       {"rebuild": "revise_from_scratch"},
+       {"confirm": "verify_alignment"}
+     ],
+     "boosters": [
+       {"clarity": "check_ambiguous_terms"},
+       {"structure": "use_bullet_points"},
+       {"reasoning": "show_all_steps"},
+       {"bounds": "follow_constraints"},
+       {"ground": "cross_check_facts"},
+       {"calibrate": "flag_uncertainties"},
+       {"filter": "remove_filler"},
+       {"recall": "maintain_continuity"}
+     ]
+   }
+ }
+}
+```
