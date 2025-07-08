@@ -258,7 +258,14 @@ Certified Scrum Master (CSM) | 2021`;
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white">
       <Navigation />
-      
+
+      {/* App Description Banner */}
+      <div className="w-full bg-blue-50 border-b border-blue-200 py-4 px-4 flex items-center justify-center">
+        <span className="text-lg md:text-xl font-semibold text-blue-900 text-center max-w-3xl">
+          JobFit AI is a comprehensive web application designed to help job seekers optimize their resumes using AI-powered analysis, role recommendations, and tailored resume generation. The platform leverages advanced AI and real-time job market data to maximize job application success rates.
+        </span>
+      </div>
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Membership Tier Advertisement */}
         <div className="mb-6">
