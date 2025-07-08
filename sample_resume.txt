@@ -1,0 +1,67 @@
+JOHN SMITH
+Senior Software Engineer
+Email: john.smith@email.com
+Phone: (555) 123-4567
+Location: San Francisco, CA
+LinkedIn: linkedin.com/in/johnsmith
+Website: johnsmith.dev
+
+PROFESSIONAL SUMMARY
+Experienced software engineer with 6+ years developing scalable web applications and leading cross-functional teams. Expertise in full-stack development, cloud architecture, and agile methodologies. Proven track record of delivering high-quality software solutions that drive business growth.
+
+TECHNICAL SKILLS
+Programming Languages: JavaScript, TypeScript, Python, Java, Go
+Frontend: React, Vue.js, Angular, HTML5, CSS3, Tailwind CSS
+Backend: Node.js, Express, Django, Spring Boot, FastAPI
+Databases: PostgreSQL, MongoDB, Redis, MySQL
+Cloud & DevOps: AWS, Docker, Kubernetes, CI/CD, Jenkins
+Tools: Git, Jira, Figma, Postman, Jest, Cypress
+
+PROFESSIONAL EXPERIENCE
+
+Senior Software Engineer | TechFlow Solutions | Jan 2022 - Present
+• Led development of microservices architecture serving 100k+ daily active users
+• Implemented automated testing pipeline reducing deployment time by 40%
+• Mentored 3 junior developers and conducted technical interviews
+• Collaborated with product and design teams to deliver user-centric features
+• Optimized database queries improving application performance by 35%
+
+Software Engineer | StartupCorp | Mar 2020 - Dec 2021
+• Built responsive web applications using React and Node.js
+• Developed RESTful APIs handling 10M+ requests per month
+• Integrated third-party payment systems increasing conversion rates by 20%
+• Participated in code reviews and maintained 95% test coverage
+• Worked in agile environment with 2-week sprints
+
+Junior Developer | WebSolutions Inc | Jun 2018 - Feb 2020
+• Created interactive user interfaces with modern JavaScript frameworks
+• Maintained legacy PHP applications and migrated to modern stack
+• Collaborated with senior developers on feature planning and implementation
+• Fixed bugs and implemented new features based on user feedback
+
+EDUCATION
+Bachelor of Science in Computer Science
+University of California, Berkeley | 2018
+GPA: 3.7/4.0
+
+CERTIFICATIONS
+AWS Certified Solutions Architect - Associate | 2023
+Google Cloud Professional Developer | 2022
+Certified Scrum Master (CSM) | 2021
+
+PROJECTS
+E-commerce Platform
+• Built full-stack e-commerce application with React, Node.js, and PostgreSQL
+• Implemented secure payment processing and inventory management
+• Deployed on AWS with auto-scaling and load balancing
+
+Task Management App
+• Developed collaborative task management tool with real-time updates
+• Used WebSocket connections for live collaboration features
+• Integrated with Slack and email notifications
+
+ACHIEVEMENTS
+• Employee of the Month - TechFlow Solutions (Q2 2023)
+• Speaker at JavaScript Conference 2023
+• Contributed to 5+ open-source projects with 500+ GitHub stars
+• Led successful migration project saving company $50k annually
