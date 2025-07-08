@@ -1,6 +1,6 @@
 
 <p align="center">
-  <img src="attached_assets/logo.png" alt="JobFit AI" width="300"/>
+  <img src="attached_assets/Logo.png" alt="JobFit AI" width="300"/>
 </p>
 
 # JobFit AI - Intelligent Resume Analysis and Optimization Platform
