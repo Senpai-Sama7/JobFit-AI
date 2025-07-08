@@ -11,6 +11,21 @@ interface SubscriptionModalProps {
 }
 
 export default function SubscriptionModal({ isOpen, onClose, onSubscribe }: SubscriptionModalProps) {
+  // Handles Stripe checkout for a given plan
+  const handleStripeSubscribe = async (plan: 'plus' | 'pro') => {
+    // You may want to pass the userId if available
+    const res = await fetch('/api/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plan }),
+    });
+    const data = await res.json();
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      alert('Failed to start checkout.');
+    }
+  };
   const freeFeatures = [
     "View ATS score for uploaded resumes",
     "See top 3 role matches",
@@ -109,7 +124,7 @@ export default function SubscriptionModal({ isOpen, onClose, onSubscribe }: Subs
                 </div>
 
                 <Button 
-                  onClick={() => onSubscribe('plus')}
+                  onClick={() => handleStripeSubscribe('plus')}
                   className="w-full mt-6 bg-primary-600 text-white hover:bg-primary-700"
                 >
                   <Zap className="h-4 w-4 mr-2" />
@@ -147,7 +162,7 @@ export default function SubscriptionModal({ isOpen, onClose, onSubscribe }: Subs
                 </div>
 
                 <Button 
-                  onClick={() => onSubscribe('pro')}
+                  onClick={() => handleStripeSubscribe('pro')}
                   className="w-full mt-6 bg-purple-600 text-white hover:bg-purple-700"
                 >
                   <Crown className="h-4 w-4 mr-2" />

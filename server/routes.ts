@@ -1,3 +1,157 @@
+// --- Session/userId guard middleware ---
+function requireSessionUserId(req: express.Request, res: express.Response, next: express.NextFunction) {
+  if (!req.session) return res.status(500).json({ error: "Session not initialized" });
+  if (!req.session.userId) req.session.userId = 1;
+  next();
+}
+
+// --- Move all imports to the top ---
+import express from 'express';
+import session from 'express-session';
+// --- Express-session middleware setup ---
+// You can move this to your main server file if needed
+const sessionMiddleware = session({
+  secret: process.env.SESSION_SECRET || 'jobfit_secret',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false }, // Set to true if using HTTPS
+});
+
+// Extend Express Request type for TypeScript
+declare module 'express-session' {
+  interface SessionData {
+    userId?: number;
+  }
+}
+
+// Export session middleware for use in main server
+export { sessionMiddleware };
+import Stripe from 'stripe';
+import axios from 'axios';
+import { getTopJobMatchesHF } from './services/hfRecommender';
+
+// --- Initialize router at the top ---
+const router = express.Router();
+
+// --- Stripe setup ---
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_PLACEHOLDER', { apiVersion: '2025-06-30.basil' });
+
+// --- Indeed OAuth config ---
+const INDEED_CLIENT_ID = process.env.INDEED_CLIENT_ID || 'YOUR_CLIENT_ID';
+const INDEED_CLIENT_SECRET = process.env.INDEED_CLIENT_SECRET || 'YOUR_CLIENT_SECRET';
+const INDEED_REDIRECT_URI = process.env.INDEED_REDIRECT_URI || 'YOUR_REDIRECT_URI';
+
+// --- API endpoint: Get top job matches for a resume ---
+// POST /api/top-matches { resumeText: string }
+router.post('/api/top-matches', async (req, res) => {
+  const { resumeText } = req.body;
+  if (!resumeText) return res.status(400).json({ error: 'Missing resumeText' });
+  // TODO: Replace with real job list from DB or API
+  const jobs = [
+    { id: '1', description: 'Software Engineer with experience in React, Node.js, and PostgreSQL.' },
+    { id: '2', description: 'Data Scientist with Python, machine learning, and NLP skills.' },
+    { id: '3', description: 'Frontend Developer skilled in TypeScript, Tailwind CSS, and UI/UX.' },
+    { id: '4', description: 'Backend Developer with Node.js, Express, and database design experience.' },
+    { id: '5', description: 'AI Engineer with experience in Hugging Face Transformers and deep learning.' },
+  ];
+  try {
+    const matches = await getTopJobMatchesHF(resumeText, jobs, 3);
+    res.json({ matches });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- Stripe Checkout session for membership ---
+router.post('/api/subscribe', async (req, res) => {
+  try {
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      mode: 'subscription',
+      line_items: [{ price: process.env.STRIPE_PRICE_ID || 'price_PLACEHOLDER', quantity: 1 }],
+      success_url: process.env.STRIPE_SUCCESS_URL || 'http://localhost:5173/membership-success',
+      cancel_url: process.env.STRIPE_CANCEL_URL || 'http://localhost:5173/membership-cancel',
+      metadata: { userId: req.body.userId || '' },
+    });
+    res.json({ url: session.url });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- Stripe webhook to update membership status ---
+router.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+  const sig = req.headers['stripe-signature'];
+  let event;
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig!, process.env.STRIPE_WEBHOOK_SECRET || 'whsec_PLACEHOLDER');
+  } catch (err: any) {
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object;
+    // TODO: Update user in DB to set subscriptionStatus = 'plus' or 'pro'
+    // Use session.metadata.userId if you passed it
+  }
+  res.json({ received: true });
+});
+
+// --- Indeed OAuth callback route ---
+router.get('/auth/indeed/callback', async (req, res) => {
+  const { code, state } = req.query;
+  if (!code) return res.status(400).json({ error: 'Missing code' });
+  try {
+    const tokenResp = await axios.post('https://secure.indeed.com/oauth/v2/tokens', null, {
+      params: {
+        client_id: INDEED_CLIENT_ID,
+        client_secret: INDEED_CLIENT_SECRET,
+        code,
+        grant_type: 'authorization_code',
+        redirect_uri: INDEED_REDIRECT_URI,
+      },
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    });
+    const { access_token } = tokenResp.data;
+    if (!access_token) return res.status(400).json({ error: 'No access token' });
+    const userResp = await axios.get('https://secure.indeed.com/v2/api/userinfo', {
+      headers: { Authorization: `Bearer ${access_token}` },
+    });
+    return res.json({ user: userResp.data, state });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || 'OAuth error' });
+  }
+});
+
+router.get('/auth/indeed/callback', async (req, res) => {
+  const { code, state } = req.query;
+  if (!code) return res.status(400).json({ error: 'Missing code' });
+  try {
+    // Exchange code for access token
+    const tokenResp = await axios.post('https://secure.indeed.com/oauth/v2/tokens', null, {
+      params: {
+        client_id: INDEED_CLIENT_ID,
+        client_secret: INDEED_CLIENT_SECRET,
+        code,
+        grant_type: 'authorization_code',
+        redirect_uri: INDEED_REDIRECT_URI,
+      },
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    });
+    const { access_token } = tokenResp.data;
+    if (!access_token) return res.status(400).json({ error: 'No access token' });
+    // Fetch user info
+    const userResp = await axios.get('https://secure.indeed.com/v2/api/userinfo', {
+      headers: { Authorization: `Bearer ${access_token}` },
+    });
+    // You can now use userResp.data (sub, email, etc.) to log in or register the user
+    // For demo, just return the user info
+    return res.json({ user: userResp.data, state });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || 'OAuth error' });
+  }
+});
+
+// ...existing code...
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
@@ -28,26 +182,15 @@ const upload = multer({
 export async function registerRoutes(app: Express): Promise<Server> {
   
   // User routes
-  app.get("/api/user", async (req, res) => {
-    // For demo purposes, create a mock user session if none exists
-    if (!req.session) {
-      req.session = { userId: 1 };
-    }
-    if (!req.session.userId) {
-      req.session.userId = 1;
-    }
-    
-    let user = await storage.getUser(req.session.userId);
+  app.get("/api/user", requireSessionUserId, async (req, res) => {
+  let user = await storage.getUser(req.session.userId as number);
     if (!user) {
-      // Create default user for demo
+      // Add required password property for demo user
       user = await storage.createUser({
         username: "demo_user",
-        subscriptionStatus: "free",
-        resumeGenerationsUsed: 0,
-        resumeGenerationsLimit: 1
+        password: "demo_password"
       });
     }
-    
     res.json({
       id: user.id,
       username: user.username,
@@ -59,33 +202,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Subscription routes
-  app.post("/api/create-subscription", async (req, res) => {
-    // For demo purposes, create a mock user session if none exists
-    if (!req.session) {
-      req.session = { userId: 1 };
-    }
-    if (!req.session.userId) {
-      req.session.userId = 1;
-    }
-
+  app.post("/api/create-subscription", requireSessionUserId, async (req, res) => {
     try {
       const { plan } = req.body;
-      
-      // For demo purposes, simulate Stripe checkout URL
-      // In production, this would create actual Stripe subscription
-      const prices = {
-        plus: 0.99,
-        pro: 4.99
-      };
-      
-      const checkoutUrl = `https://checkout.stripe.com/pay/cs_demo_${plan}_${Date.now()}#fidkdWxOYHwnPyd1blpxYHZxWjA0S21PSVdOa0hPVG1IVHVqSnJLdmB8bWJsdVJgVTJRNGBxN0w1cmFCSHU8QUFxSzJ0ZDFGU0M0MGJqR3VLbGtuSmNEckRDSGExXzA0cGFPRnxCaUd8fH8walZEfTdgMGNScTdocFxccTI%3D`;
-      
-      res.json({
-        url: checkoutUrl,
-        sessionId: `cs_demo_${plan}_${Date.now()}`,
-        plan,
-        price: prices[plan as keyof typeof prices]
-      });
+      res.status(501).json({ error: "Not implemented. Use /api/subscribe for real Stripe integration." });
     } catch (error: any) {
       res.status(500).json({ error: "Failed to create subscription: " + error.message });
     }
@@ -110,17 +230,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   // Get user's resumes
-  app.get("/api/resumes", async (req, res) => {
-    // For demo purposes, create a mock user session if none exists
-    if (!req.session) {
-      req.session = { userId: 1 };
-    }
-    if (!req.session.userId) {
-      req.session.userId = 1;
-    }
-
+  app.get("/api/resumes", requireSessionUserId, async (req, res) => {
     try {
-      const resumes = await storage.getResumesByUserId(req.session.userId);
+  const resumes = await storage.getResumesByUserId(req.session.userId as number);
       console.log('Resumes fetched:', resumes);
       res.json(resumes);
     } catch (error: any) {
@@ -129,93 +241,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create resume manually
-  app.post("/api/resumes/manual", async (req, res) => {
-    // For demo purposes, create a mock user session if none exists
-    if (!req.session) {
-      req.session = { userId: 1 };
-    }
-    if (!req.session.userId) {
-      req.session.userId = 1;
-    }
-
-    try {
-      const { resumeData } = req.body;
-      
-      if (!resumeData) {
-        return res.status(400).json({ error: "Resume data is required" });
-      }
-
-      // Create resume record with parsed data
-      const resume = await storage.createResume({
-        userId: req.session.userId,
-        originalFileName: `${resumeData.contact.name.replace(/\s+/g, '_')}_Resume.txt`,
-        fileType: '.txt',
-        rawContent: generateResumeContent(resumeData, false),
-        parsedData: resumeData,
-        processingStatus: "completed",
-        atsScore: calculateAtsScore(resumeData),
-      });
-
-      // Log activity
-      await storage.createActivity({
-        userId: req.session.userId,
-        type: "uploaded",
-        title: "Resume created manually",
-        description: `Created resume for ${resumeData.contact.name}`,
-        metadata: { resumeId: resume.id, method: "manual" },
-      });
-
-      res.json({ 
-        message: "Resume created successfully",
-        resume: {
-          id: resume.id,
-          originalFileName: resume.originalFileName,
-          processingStatus: resume.processingStatus,
-          atsScore: resume.atsScore,
-          uploadedAt: resume.uploadedAt,
-        }
-      });
-    } catch (error) {
-      console.error("Manual resume creation error:", error);
-      res.status(500).json({ error: "Failed to create resume" });
-    }
-  });
+  // Removed duplicate /api/resumes/manual route (see below for correct version)
 
   // Upload resume file
-  app.post("/api/resumes/upload", upload.single('file'), async (req, res) => {
+  app.post("/api/resumes/upload", requireSessionUserId, upload.single('file'), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: "No file uploaded" });
       }
-
-      // For demo purposes, create a mock user session if none exists
-      if (!req.session) {
-        req.session = { userId: 1 };
-      }
-      if (!req.session.userId) {
-        req.session.userId = 1;
-      }
-
-      const userId = req.session.userId;
+  const userId = req.session.userId as number;
       const fileType = path.extname(req.file.originalname).toLowerCase();
       let rawContent = '';
-      
       try {
         rawContent = req.file.buffer.toString('utf-8');
       } catch (err) {
         console.log("Binary file detected, using filename for parsing");
         rawContent = req.file.originalname;
       }
-
-      // Create initial resume record
       const resume = await storage.createResume({
         userId: userId,
         originalFileName: req.file.originalname,
         fileType,
         rawContent,
       });
-
-      // Log activity
       await storage.createActivity({
         userId: userId,
         type: "upload",
@@ -223,22 +271,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description: `Uploaded ${req.file.originalname}`,
         metadata: { resumeId: resume.id, fileType },
       });
-
-      // Start async parsing
       setImmediate(async () => {
         try {
           await storage.updateResume(resume.id, { processingStatus: "parsing" });
-          
           const parsedData = await parseResume(rawContent, fileType);
           const atsScore = calculateAtsScore(parsedData);
-          
           await storage.updateResume(resume.id, {
             parsedData,
             atsScore,
             processingStatus: "generating_recommendations",
           });
-
-          // Generate role recommendations
           const recommendations = await generateRoleRecommendations(parsedData);
           for (const rec of recommendations) {
             await storage.createRoleRecommendation({
@@ -246,10 +288,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               ...rec,
             });
           }
-
           await storage.updateResume(resume.id, { processingStatus: "completed" });
-
-          // Log completion activity
           await storage.createActivity({
             userId: userId,
             type: "parsed",
@@ -262,7 +301,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           await storage.updateResume(resume.id, { processingStatus: "error" });
         }
       });
-
       res.json(resume);
     } catch (error) {
       console.error("Upload error:", error);
@@ -271,26 +309,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create resume manually
-  app.post("/api/resumes/manual", async (req, res) => {
+  app.post("/api/resumes/manual", requireSessionUserId, async (req, res) => {
     try {
       const { resumeData } = req.body;
-      
+      if (!resumeData) {
+        return res.status(400).json({ error: "Resume data is required" });
+      }
       const resume = await storage.createResume({
-        userId,
+        userId: req.session.userId as number,
         originalFileName: "Manual Entry",
         fileType: ".json",
         rawContent: JSON.stringify(resumeData),
       });
-
       const atsScore = calculateAtsScore(resumeData);
-      
       await storage.updateResume(resume.id, {
         parsedData: resumeData,
         atsScore,
         processingStatus: "completed",
       });
-
-      // Generate role recommendations
       const recommendations = await generateRoleRecommendations(resumeData);
       for (const rec of recommendations) {
         await storage.createRoleRecommendation({
@@ -298,15 +334,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ...rec,
         });
       }
-
       await storage.createActivity({
-        userId,
+        userId: req.session.userId as number,
         type: "created",
         title: "Resume created manually",
         description: `ATS Score: ${atsScore}% • ${recommendations.length} role matches found`,
         metadata: { resumeId: resume.id, atsScore },
       });
-
       res.json(resume);
     } catch (error) {
       console.error("Manual creation error:", error);
@@ -317,7 +351,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get user's resumes
   app.get("/api/resumes", async (req, res) => {
     try {
-      const resumes = await storage.getResumesByUserId(userId);
+      if (!req.session) return res.status(500).json({ error: "Session not initialized" });
+      if (!req.session.userId) req.session.userId = 1;
+      const resumes = await storage.getResumesByUserId(req.session.userId);
       console.log("Resumes fetched:", resumes.map(r => ({ 
         id: r.id, 
         fileName: r.originalFileName, 
@@ -372,8 +408,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Log activity
+      if (!req.session) return res.status(500).json({ error: "Session not initialized" });
+      if (!req.session.userId) req.session.userId = 1;
       await storage.createActivity({
-        userId,
+        userId: req.session.userId,
         type: "deleted",
         title: "Resume deleted",
         description: `Resume ${resumeId} was permanently deleted`,
@@ -406,17 +444,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const contentType = getContentType(format);
       
       // Log export activity
+      if (!req.session) return res.status(500).json({ error: "Session not initialized" });
+      if (!req.session.userId) req.session.userId = 1;
       await storage.createActivity({
-        userId,
+        userId: req.session.userId,
         type: "exported",
         title: "Resume exported",
         description: `Exported ${optimized ? 'optimized ' : ''}resume as ${format.toUpperCase()}`,
         metadata: { resumeId, format, optimized },
       });
 
-      res.setHeader('Content-Type', contentType);
-      res.setHeader('Content-Disposition', `attachment; filename="${resume.originalFileName.replace(/\.[^/.]+$/, '')}.${format}"`);
-      res.send(content);
+  res.setHeader('Content-Type', contentType);
+  const safeFileName = resume.originalFileName ? resume.originalFileName.replace(/\.[^/.]+$/, '') : 'resume';
+  res.setHeader('Content-Disposition', `attachment; filename="${safeFileName}.${format}"`);
+  res.send(content);
     } catch (error) {
       console.error("Export error:", error);
       res.status(500).json({ error: "Failed to export resume" });
@@ -454,10 +495,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check user subscription status and apply limits
-      if (req.session.userId) {
+      if (req.session && req.session.userId) {
         const user = await storage.getUser(req.session.userId);
-        const isPremium = user?.subscriptionStatus === "premium";
-        
+        // Only allow 'plus' or 'pro' as premium
+        const isPremium = user?.subscriptionStatus === "plus" || user?.subscriptionStatus === "pro";
         // Limit to 3 recommendations for free users
         if (!isPremium && recommendations.length > 3) {
           recommendations = recommendations.slice(0, 3);
@@ -499,8 +540,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         atsScore: tailoredAtsScore,
       });
 
+      if (!req.session) return res.status(500).json({ error: "Session not initialized" });
+      if (!req.session.userId) req.session.userId = 1;
       await storage.createActivity({
-        userId,
+        userId: req.session.userId,
         type: "tailored",
         title: "Resume tailored for specific role",
         description: `ATS Score improved to ${tailoredAtsScore}% • ${tailoredData.improvements.length} enhancements made`,
@@ -570,8 +613,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Log optimization activity
+      if (!req.session) return res.status(500).json({ error: "Session not initialized" });
+      if (!req.session.userId) req.session.userId = 1;
       await storage.createActivity({
-        userId,
+        userId: req.session.userId,
         type: "optimized",
         title: "Resume optimized",
         description: `ATS score improved from ${currentScore}% to ${optimizedScore}%`,
@@ -628,8 +673,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Log save activity
+      if (!req.session) return res.status(500).json({ error: "Session not initialized" });
+      if (!req.session.userId) req.session.userId = 1;
       await storage.createActivity({
-        userId,
+        userId: req.session.userId,
         type: "saved",
         title: "Optimization saved",
         description: `Resume optimization saved with ${optimizedScore}% ATS score`,
@@ -663,8 +710,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
       
       // Log export activity
+      if (!req.session) return res.status(500).json({ error: "Session not initialized" });
+      if (!req.session.userId) req.session.userId = 1;
       await storage.createActivity({
-        userId,
+        userId: req.session.userId,
         type: "exported",
         title: `Resume exported${optimized ? ' (optimized)' : ''}`,
         description: `Downloaded as ${format.toUpperCase()}${optimized ? ' with optimizations' : ''}`,
@@ -680,18 +729,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get user activities
-  app.get("/api/activities", async (req, res) => {
-    // For demo purposes, create a mock user session if none exists
-    if (!req.session) {
-      req.session = { userId: 1 };
-    }
-    if (!req.session.userId) {
-      req.session.userId = 1;
-    }
-
+  app.get("/api/activities", requireSessionUserId, async (req, res) => {
     try {
       const limit = parseInt(req.query.limit as string) || 10;
-      const activities = await storage.getActivitiesByUserId(req.session.userId, limit);
+  const activities = await storage.getActivitiesByUserId(req.session.userId as number, limit);
       res.json(activities);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch activities" });
@@ -699,35 +740,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get dashboard stats
-  app.get("/api/dashboard/stats", async (req, res) => {
-    // For demo purposes, create a mock user session if none exists
-    if (!req.session) {
-      req.session = { userId: 1 };
-    }
-    if (!req.session.userId) {
-      req.session.userId = 1;
-    }
-
+  app.get("/api/dashboard/stats", requireSessionUserId, async (req, res) => {
     try {
-      const resumes = await storage.getResumesByUserId(req.session.userId);
-      const activities = await storage.getActivitiesByUserId(req.session.userId, 50);
-      
+  const resumes = await storage.getResumesByUserId(req.session.userId as number);
+  const activities = await storage.getActivitiesByUserId(req.session.userId as number, 50);
       // Include all resumes, not just completed ones
       const avgAtsScore = resumes.length > 0 
         ? Math.round(resumes.reduce((sum, r) => sum + (r.atsScore || 0), 0) / resumes.length)
         : 0;
-      
       const tailoredCount = activities.filter(a => a.type === 'tailored').length;
       const exportCount = activities.filter(a => a.type === 'exported').length;
       const optimizedCount = activities.filter(a => a.type === 'optimized').length;
-
       // Get role recommendations count for all resumes
       let totalRoleMatches = 0;
       for (const resume of resumes) {
         const recs = await storage.getRoleRecommendationsByResumeId(resume.id);
         totalRoleMatches += recs.length;
       }
-
       const stats = {
         resumesCreated: resumes.length,
         averageAtsScore: avgAtsScore,
@@ -735,7 +764,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         tailoredResumes: tailoredCount,
         exports: exportCount,
       };
-
       console.log("Dashboard stats calculated:", stats);
       res.json(stats);
     } catch (error) {
