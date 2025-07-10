@@ -1,3 +1,12 @@
+/**
+ * JobFit-AI Tailoring Workspace Component
+ * Version: 2025-07-10
+ * Maintainer: JobFit-AI Team
+ *
+ * Notes:
+ * - Provides a two-pane editor for tailoring resumes to job descriptions.
+ * - Handles AI-powered tailoring, export, and improvement tracking.
+ */
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";

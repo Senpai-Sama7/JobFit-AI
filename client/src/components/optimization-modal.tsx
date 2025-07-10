@@ -1,3 +1,11 @@
+/**
+ * JobFit-AI Optimization Modal Component
+ * Version: 2025-07-10
+ * Maintainer: JobFit-AI Team
+ *
+ * Notes:
+ * - Displays ATS score improvements and applied optimizations after resume analysis.
+ */
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";

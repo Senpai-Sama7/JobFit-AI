@@ -1,11 +1,27 @@
+/**
+ * JobFit-AI Server Entry Point
+ * Version: 2025-07-10
+ * Maintainer: JobFit-AI Team
+ *
+ * Notes:
+ * - Sets up Express server, API routing, error handling, and static/client serving.
+ * - Handles both development (Vite) and production static serving.
+ */
 import express, { type Request, Response, NextFunction } from "express";
+<<<<<<< HEAD
 import router from "./routes";
 import http from "http";
+=======
+import { registerRoutes, sessionMiddleware } from "./routes";
+>>>>>>> 38e359a (codebase refactor)
 import { setupVite, serveStatic, log } from "./vite";
+
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+// Add session middleware for all routes
+app.use(sessionMiddleware);
 
 app.use((req, res, next) => {
   const start = Date.now();

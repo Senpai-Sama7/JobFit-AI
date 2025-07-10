@@ -1,3 +1,12 @@
+/**
+ * JobFit-AI In-Memory Storage Implementation
+ * Version: 2025-07-10
+ * Maintainer: JobFit-AI Team
+ *
+ * Notes:
+ * - Provides a mock in-memory storage layer for users, resumes, recommendations, and activities.
+ * - Replace with a persistent database implementation for production deployments.
+ */
 import { 
   users, resumes, roleRecommendations, tailoredResumes, activities,
   type User, type InsertUser, type Resume, type InsertResume,
@@ -13,7 +22,7 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUserSubscription(id: number, subscriptionData: {
-    subscriptionStatus: "free" | "premium";
+    subscriptionStatus: "free" | "plus" | "pro";
     subscriptionExpiry?: Date;
     stripeCustomerId?: string;
     stripeSubscriptionId?: string;
@@ -69,8 +78,8 @@ export class MemStorage implements IStorage {
     // Create default user for demo
     this.createUser({ 
       username: "demo", 
-      password: "demo123",
-      email: "demo@jobfit.ai"
+      password: "demo123"
+      // email intentionally omitted for InsertUser type compatibility
     });
   }
 
@@ -87,10 +96,11 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.currentUserId++;
+    // InsertUser does not have email, so default to username@demo.com
     const user: User = { 
       ...insertUser, 
       id,
-      email: insertUser.email || `${insertUser.username}@demo.com`,
+      email: `${insertUser.username}@demo.com`,
       subscriptionStatus: "free",
       resumeGenerationsUsed: 0,
       resumeGenerationsLimit: 1,
@@ -107,12 +117,12 @@ export class MemStorage implements IStorage {
     subscriptionExpiry?: Date;
     stripeCustomerId?: string;
     stripeSubscriptionId?: string;
-    resumeGenerationsLimit?: number;
   }): Promise<User | undefined> {
     const user = this.users.get(id);
     if (!user) return undefined;
 
-    const subscriptionLimits = {
+    // Match User type: free, plus, pro
+    const subscriptionLimits: Record<"free" | "plus" | "pro", number> = {
       free: 1,
       plus: 10,
       pro: 30
@@ -121,9 +131,7 @@ export class MemStorage implements IStorage {
     const updatedUser: User = {
       ...user,
       ...subscriptionData,
-      resumeGenerationsLimit: subscriptionData.resumeGenerationsLimit || 
-        subscriptionLimits[subscriptionData.subscriptionStatus as keyof typeof subscriptionLimits] || 
-        user.resumeGenerationsLimit,
+      resumeGenerationsLimit: subscriptionLimits[subscriptionData.subscriptionStatus],
     };
     this.users.set(id, updatedUser);
     return updatedUser;
@@ -247,4 +255,6 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Use persistent PostgreSQL storage in production
+import { PgStorage } from './pg-storage';
+export const storage = new PgStorage();

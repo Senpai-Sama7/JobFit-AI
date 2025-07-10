@@ -1,7 +1,20 @@
+<<<<<<< HEAD
 import pdf from 'pdf-parse';
 import { db } from '../db';
 import { resumes } from '../../shared/schema';
 import { eq } from 'drizzle-orm';
+=======
+/**
+ * JobFit-AI Resume Parser Service
+ * Version: 2025-07-10
+ * Maintainer: JobFit-AI Team
+ *
+ * Notes:
+ * - Parses resume content from various file types into structured data.
+ * - In production, replace mocks with robust PDF/DOCX parsing libraries.
+ */
+import { ParsedResume, SkillProfile } from "@shared/schema";
+>>>>>>> 38e359a (codebase refactor)
 
 export async function processResume(resumeId: number, fileBuffer: Buffer) {
   try {

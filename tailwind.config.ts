@@ -1,10 +1,30 @@
+
+/**
+ * Tailwind CSS Configuration
+ * Version: 2025-07-10
+ * Maintainer: JobFit-AI Team
+ *
+ * Notes:
+ * - Uses CSS variables for theme tokens (see :root in global CSS).
+ * - Safelist added for dynamic classes (see below).
+ */
 import type { Config } from "tailwindcss";
 
 export default {
   darkMode: ["class"],
   content: ["./client/index.html", "./client/src/**/*.{js,jsx,ts,tsx}"],
+  // Safelist: Ensures dynamic classes are always included in the build
+  safelist: [
+    // Example: dynamic bg, text, border, and ring colors
+    'bg-primary', 'bg-secondary', 'bg-accent', 'bg-destructive',
+    'text-primary', 'text-secondary', 'text-accent', 'text-destructive',
+    'border-primary', 'border-secondary', 'border-accent', 'border-destructive',
+    'ring-primary', 'ring-secondary', 'ring-accent', 'ring-destructive',
+    // Add more as needed for dynamic class generation
+  ],
   theme: {
     extend: {
+      // Uses CSS variables for all color and radius tokens (see global :root)
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",

@@ -1,3 +1,11 @@
+/**
+ * JobFit-AI Notification Toast Utility
+ * Version: 2025-07-10
+ * Maintainer: JobFit-AI Team
+ *
+ * Notes:
+ * - Provides a unified interface for showing user notifications and toasts.
+ */
 import { useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { CheckCircle, AlertCircle, Clock, Zap } from "lucide-react";

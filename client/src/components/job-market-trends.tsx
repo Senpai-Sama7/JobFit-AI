@@ -1,3 +1,11 @@
+/**
+ * JobFit-AI Job Market Trends Component
+ * Version: 2025-07-10
+ * Maintainer: JobFit-AI Team
+ *
+ * Notes:
+ * - Displays live job market trends and actionable insights for users.
+ */
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, TrendingDown, AlertCircle, Info, Target } from "lucide-react";

@@ -1,3 +1,11 @@
+/**
+ * JobFit-AI Role Recommendations Component
+ * Version: 2025-07-10
+ * Maintainer: JobFit-AI Team
+ *
+ * Notes:
+ * - Displays AI-powered job role matches based on resume analysis.
+ */
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";

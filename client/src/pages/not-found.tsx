@@ -1,3 +1,11 @@
+/**
+ * JobFit-AI 404 Not Found Page
+ * Version: 2025-07-10
+ * Maintainer: JobFit-AI Team
+ *
+ * Notes:
+ * - Displays a user-friendly 404 error for undefined routes.
+ */
 import { Card, CardContent } from "@/components/ui/card";
 import { AlertCircle } from "lucide-react";
 

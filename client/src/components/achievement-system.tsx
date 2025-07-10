@@ -1,3 +1,11 @@
+/**
+ * JobFit-AI Achievement System Component
+ * Version: 2025-07-10
+ * Maintainer: JobFit-AI Team
+ *
+ * Notes:
+ * - Tracks user achievements and weekly challenges for engagement.
+ */
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

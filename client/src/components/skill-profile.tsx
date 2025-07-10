@@ -1,3 +1,11 @@
+/**
+ * JobFit-AI Skill Profile Component
+ * Version: 2025-07-10
+ * Maintainer: JobFit-AI Team
+ *
+ * Notes:
+ * - Visualizes extracted and categorized skills from the user's resume.
+ */
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -27,9 +35,9 @@ export default function SkillProfile({ resume }: SkillProfileProps) {
 
   // Mock skill categorization and levels for demonstration
   const categorizeSkills = (skills: string[]) => {
-    const technical = [];
-    const soft = [];
-    const domain = [];
+    const technical: { name: string; level: number }[] = [];
+    const soft: { name: string; level: number }[] = [];
+    const domain: { name: string; level: number }[] = [];
 
     const techKeywords = ['python', 'sql', 'javascript', 'react', 'java', 'c++', 'html', 'css', 'git', 'aws', 'docker', 'kubernetes', 'tableau', 'excel', 'power bi'];
     const softKeywords = ['leadership', 'communication', 'teamwork', 'project management', 'problem solving', 'analytical', 'creative'];

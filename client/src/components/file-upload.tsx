@@ -1,8 +1,28 @@
+<<<<<<< HEAD
 import { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useUploadResume, useResumeStatus } from '@/hooks/use-resume';
 import { Progress } from './ui/progress';
 import { CheckCircle, AlertTriangle, Loader } from 'lucide-react';
+=======
+/**
+ * JobFit-AI File Upload Component
+ * Version: 2025-07-10
+ * Maintainer: JobFit-AI Team
+ *
+ * Notes:
+ * - Handles secure, user-friendly resume uploads with progress and error feedback.
+ */
+import { useState, useCallback } from "react";
+import { useDropzone } from "react-dropzone";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import { FileUp, X, CheckCircle, AlertCircle, Clock, Zap } from "lucide-react";
+>>>>>>> 38e359a (codebase refactor)
 
 export function FileUpload() {
   const [resumeId, setResumeId] = useState<number | null>(null);

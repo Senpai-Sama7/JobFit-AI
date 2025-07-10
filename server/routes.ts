@@ -1,9 +1,27 @@
+<<<<<<< HEAD
 import { Router } from 'express';
 import multer from 'multer';
 import { db } from './db';
 import { resumes } from '../shared/schema';
 import { processResume } from './services/parser';
 import { eq } from 'drizzle-orm';
+=======
+/**
+ * JobFit-AI Server API Routes
+ * Version: 2025-07-10
+ * Maintainer: JobFit-AI Team
+ *
+ * Notes:
+ * - Defines all API endpoints, session management, file upload, and business logic.
+ * - Integrates with Stripe, Indeed OAuth, and all resume/ATS features.
+ */
+// --- Session/userId guard middleware ---
+function requireSessionUserId(req: express.Request, res: express.Response, next: express.NextFunction) {
+  if (!req.session) return res.status(500).json({ error: "Session not initialized" });
+  if (!req.session.userId) req.session.userId = 1;
+  next();
+}
+>>>>>>> 38e359a (codebase refactor)
 
 const router = Router();
 

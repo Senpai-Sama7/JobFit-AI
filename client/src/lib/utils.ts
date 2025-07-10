@@ -85,5 +85,5 @@ export function generateResumeFileName(originalName: string, type: 'tailored' | 
     return `${baseName}_tailored_${timestamp}`;
   }
   
-  return `${baseName}_${timestamp}.${format || 'pdf'}`;
+  return `${baseName}_${timestamp}.${format ?? 'pdf'}`;
 }

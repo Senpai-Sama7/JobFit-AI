@@ -1,0 +1,9 @@
+{
+    "chat.mcp.serverSampling": {
+        "JobFit-AI/.vscode/mcp.json: neon-remote": {
+            "allowedModels": [
+                "github.copilot-chat/gpt-4.1"
+            ]
+        }
+    }
+}

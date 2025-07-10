@@ -1,3 +1,11 @@
+/**
+ * JobFit-AI Navigation Bar Component
+ * Version: 2025-07-10
+ * Maintainer: JobFit-AI Team
+ *
+ * Notes:
+ * - Provides top-level navigation, notifications, and user profile/settings modals.
+ */
 import { useState } from "react";
 import { Bell, FileText, ChevronDown, User, Settings, LogOut, Palette } from "lucide-react";
 import { Button } from "@/components/ui/button";

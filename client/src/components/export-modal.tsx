@@ -1,3 +1,11 @@
+/**
+ * JobFit-AI Export Modal Component
+ * Version: 2025-07-10
+ * Maintainer: JobFit-AI Team
+ *
+ * Notes:
+ * - Handles exporting resumes in multiple formats (PDF, DOCX, TXT).
+ */
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";

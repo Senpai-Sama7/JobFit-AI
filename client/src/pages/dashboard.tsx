@@ -1,3 +1,12 @@
+/**
+ * JobFit-AI Dashboard Page
+ * Version: 2025-07-10
+ * Maintainer: JobFit-AI Team
+ *
+ * Notes:
+ * - Main user dashboard for resume management, AI analysis, and job search features.
+ * - Handles all user-facing dashboard logic and API integration.
+ */
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -516,7 +525,7 @@ Certified Scrum Master (CSM) | 2021`;
                 
                 <div className="space-y-4">
                   {activities?.length ? (
-                    activities.map((activity) => (
+                    activities.map((activity: Activity) => (
                       <div key={activity.id} className="flex items-start space-x-4 p-4 hover:bg-grey-50 rounded-lg transition-colors">
                         <div className="w-8 h-8 bg-success-100 rounded-full flex items-center justify-center flex-shrink-0">
                           {getActivityIcon(activity.type)}
@@ -596,7 +605,7 @@ Certified Scrum Master (CSM) | 2021`;
             <ResumeBuilder 
               onComplete={(resumeId) => {
                 setShowManualForm(false);
-                refetchResumes();
+                queryClient.invalidateQueries({ queryKey: ['/api/resumes'] });
                 toast({
                   title: "Resume Created",
                   description: "Your resume has been successfully created and is ready for optimization!",

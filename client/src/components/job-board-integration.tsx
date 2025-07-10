@@ -1,3 +1,11 @@
+/**
+ * JobFit-AI Job Board Integration Component
+ * Version: 2025-07-10
+ * Maintainer: JobFit-AI Team
+ *
+ * Notes:
+ * - Integrates job search and application tracking with external job boards.
+ */
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

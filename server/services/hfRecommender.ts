@@ -1,3 +1,12 @@
+/**
+ * JobFit-AI Hugging Face Recommender Service
+ * Version: 2025-07-10
+ * Maintainer: JobFit-AI Team
+ *
+ * Notes:
+ * - Uses Python sentence-transformers via child process for semantic job matching.
+ * - Computes top-N job matches using cosine similarity of embeddings.
+ */
 // Hugging Face-based recommender for job matching
 import * as fs from 'fs';
 import path from 'path';

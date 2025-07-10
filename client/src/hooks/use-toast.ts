@@ -1,3 +1,11 @@
+/**
+ * JobFit-AI Toast Hook
+ * Version: 2025-07-10
+ * Maintainer: JobFit-AI Team
+ *
+ * Notes:
+ * - Provides a global toast notification system for the application.
+ */
 import * as React from "react"
 
 import type {
