@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JobFit AI - Your AI-Powered Career Copilot</title>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- All CSS is embedded here -->
+    <style>
+        :root {
+            --primary-hue: 207;
+            --primary-saturation: 90%;
+            --primary-lightness: 54%;
+            --primary: hsl(var(--primary-hue), var(--primary-saturation), var(--primary-lightness));
+            --primary-glow: hsla(var(--primary-hue), var(--primary-saturation), var(--primary-lightness), 0.5);
+            --primary-dark: hsl(var(--primary-hue), var(--primary-saturation), 40%);
+            
+            --grey-hue: 220;
+            --grey-light: hsl(var(--grey-hue), 13%, 91%);
+            --grey-mid: hsl(var(--grey-hue), 9%, 46%);
+            --grey-dark: hsl(var(--grey-hue), 39%, 11%);
+            
+            --text-light: hsl(var(--grey-hue), 20%, 98%);
+            --text-dark: hsl(var(--grey-hue), 39%, 11%);
+            
+            --background-start: hsl(240, 30%, 8%);
+            --background-end: hsl(280, 35%, 12%);
+            
+            --radius: 0.75rem;
+        }
+
+        /* 1. Global Styles & Resets */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, var(--background-start) 0%, var(--background-end) 100%);
+            color: var(--text-light);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* 2. 3D Canvas & Layout */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 2s ease-in;
+        }
+
+        main {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* 3. Typography & Shared Elements */
+        h1, h2, h3 {
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        h1 {
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            line-height: 1.1;
+            background: linear-gradient(90deg, hsl(207, 100%, 85%), #fff, hsl(280, 100%, 90%));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+        }
+
+        h2 {
+            font-size: clamp(2rem, 5vw, 2.5rem);
+            margin-bottom: 2rem;
+        }
+        
+        h3 {
+             font-size: 1.25rem;
+             margin-bottom: 0.75rem;
+        }
+
+        p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: var(--grey-light);
+            max-width: 650px;
+        }
+        
+        .section {
+            width: 100%;
+            padding: 6rem 0;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* 4. Glassmorphism Card Effect */
+        .glass-card {
+            background: rgba(30, 35, 50, 0.25);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            padding: 2rem;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 16px 40px 0 rgba(0, 0, 0, 0.5);
+        }
+        
+        /* 5. Buttons */
+        .btn {
+            display: inline-block;
+            padding: 0.8rem 1.75rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1rem;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--text-light);
+            box-shadow: 0 4px 20px var(--primary-glow);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px var(--primary-glow);
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-light);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* 6. Page Sections */
+        .header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 0;
+            opacity: 0;
+        }
+        
+        .logo {
+            font-weight: 800;
+            font-size: 1.5rem;
+        }
+
+        .hero {
+            min-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .hero .headline, .hero .subheadline, .hero .cta-buttons {
+             opacity: 0;
+        }
+        
+        .hero p {
+            margin: 1.5rem 0 2.5rem;
+        }
+        
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            width: 100%;
+        }
+        
+        .feature-card {
+            text-align: left;
+            opacity: 0;
+        }
+        
+        .feature-card .icon {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+        
+        /* 7. Dashboard (Initially Hidden) */
+        .dashboard {
+            display: none; /* Initially hidden */
+            width: 100%;
+            text-align: left;
+            animation: fadeIn 1s ease-in-out;
+        }
+        
+        .dashboard-grid {
+             display: grid;
+             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+             gap: 2rem;
+             margin-top: 2rem;
+        }
+        
+        .dashboard-card {
+             padding: 1.5rem;
+        }
+        
+        .ats-score-visualizer {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 1rem auto;
+        }
+        
+        .ats-score-visualizer svg {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+        
+        .ats-score-visualizer circle {
+            fill: none;
+            stroke-width: 15;
+        }
+        
+        .ats-circle-bg {
+            stroke: rgba(255, 255, 255, 0.1);
+        }
+        
+        .ats-circle-progress {
+            stroke: var(--primary);
+            stroke-linecap: round;
+            stroke-dasharray: 565;
+            stroke-dashoffset: 565; /* Animate this */
+        }
+        
+        .ats-score-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2.5rem;
+            font-weight: 800;
+        }
+        
+        .skills-chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        
+        .recommendation-list {
+            list-style: none;
+        }
+        
+        .recommendation-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            border-left: 3px solid var(--primary);
+        }
+
+        /* 8. Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 10, 20, 0.7);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .modal-content {
+            width: 90%;
+            max-width: 500px;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+        
+        .upload-area {
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: var(--radius);
+            padding: 3rem 1rem;
+            text-align: center;
+            margin: 2rem 0;
+            cursor: pointer;
+        }
+        
+        .loader {
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-left-color: var(--primary);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+            display: none;
+        }
+
+        /* 9. Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* 10. Responsive Design */
+        @media (max-width: 768px) {
+            main {
+                padding: 1rem;
+            }
+            .cta-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- This canvas is for the 3D background -->
+    <canvas id="bg-canvas"></canvas>
+
+    <main>
+        <header class="header">
+            <div class="logo">JobFit AI</div>
+            <nav>
+                <a href="#" class="btn btn-secondary">Sign In</a>
+            </nav>
+        </header>
+
+        <div id="landing-page">
+            <section class="hero">
+                <h1 class="headline">Land Your Dream Job with an AI-Perfected Resume</h1>
+                <p class="subheadline">
+                    Our intelligent platform analyzes your resume, scores it against Applicant Tracking Systems (ATS), and provides tailored recommendations to help you stand out.
+                </p>
+                <div class="cta-buttons">
+                    <a href="#" class="btn btn-primary" id="upload-btn">Upload Resume for Free Analysis</a>
+                    <a href="#features" class="btn btn-secondary">Learn More</a>
+                </div>
+            </section>
+
+            <section class="section" id="features">
+                <h2>How It Works</h2>
+                <div class="features-grid">
+                    <div class="feature-card glass-card">
+                        <div class="icon">📄</div>
+                        <h3>1. Instant Parsing</h3>
+                        <p>Upload your resume in any format, and our AI instantly extracts and structures your skills, experience, and education.</p>
+                    </div>
+                    <div class="feature-card glass-card">
+                        <div class="icon">🎯</div>
+                        <h3>2. ATS Scoring</h3>
+                        <p>Receive a detailed score showing how well your resume will perform in automated screening systems used by top companies.</p>
+                    </div>
+                    <div class="feature-card glass-card">
+                        <div class="icon">💡</div>
+                        <h3>3. AI Recommendations</h3>
+                        <p>Get actionable, data-driven suggestions to optimize keywords, improve formatting, and tailor your content for specific roles.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <section class="dashboard" id="dashboard">
+            <h2>Welcome Back, Alex!</h2>
+            <p>Here's a summary of your latest resume analysis.</p>
+            <div class="dashboard-grid">
+                <div class="dashboard-card glass-card">
+                    <h3>ATS Compatibility Score</h3>
+                    <div class="ats-score-visualizer">
+                        <svg>
+                            <circle class="ats-circle-bg" cx="100" cy="100" r="90"></circle>
+                            <circle class="ats-circle-progress" cx="100" cy="100" r="90"></circle>
+                        </svg>
+                        <div class="ats-score-text" id="ats-score-text">0%</div>
+                    </div>
+                </div>
+                <div class="dashboard-card glass-card">
+                    <h3>Skill Profile</h3>
+                    <div class="skills-chart-container">
+                        <canvas id="skillsChart"></canvas>
+                    </div>
+                </div>
+                <div class="dashboard-card glass-card" style="grid-column: span 1 / -1;">
+                    <h3>Top Job Recommendations</h3>
+                    <ul class="recommendation-list">
+                        <li class="recommendation-item"><strong>Senior Frontend Developer</strong> at TechCorp - 92% Match</li>
+                        <li class="recommendation-item"><strong>React Specialist</strong> at Innovate Inc - 88% Match</li>
+                        <li class="recommendation-item"><strong>UI/UX Engineer</strong> at DesignFirst - 85% Match</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal for file upload simulation -->
+    <div class="modal-overlay" id="upload-modal">
+        <div class="modal-content glass-card">
+            <h3>Upload Your Resume</h3>
+            <p>Drag & drop your file below or click to select. We'll start the analysis immediately.</p>
+            <div class="upload-area" id="drop-area">
+                <p>📄 Drag your file here</p>
+            </div>
+            <div class="loader" id="loader"></div>
+            <a href="#" class="btn btn-primary" style="width:100%; text-align:center" id="analyze-btn">Analyze My Resume</a>
+        </div>
+    </div>
+
+
+    <!-- All JavaScript libraries and application code is embedded here -->
+    
+    <!-- 1. Import Libraries from CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- 2. Application Logic -->
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // =================================================================
+        // PART 1: 3D INTERACTIVE BACKGROUND (THREE.JS)
+        // =================================================================
+        let scene, camera, renderer, particles, particleSystem, mouse;
+
+        function init3DBackground() {
+            const canvas = document.getElementById('bg-canvas');
+            scene = new THREE.Scene();
+            mouse = new THREE.Vector2();
+
+            // Camera setup
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 50;
+
+            // Renderer setup
+            renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+            // Particles setup
+            const particleCount = 5000;
+            particles = new THREE.BufferGeometry();
+            const positions = new Float32Array(particleCount * 3);
+
+            for (let i = 0; i < particleCount * 3; i++) {
+                positions[i] = (Math.random() - 0.5) * 200;
+            }
+            particles.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+            const particleMaterial = new THREE.PointsMaterial({
+                color: 0x87CEEB, // Light blue
+                size: 0.15,
+                transparent: true,
+                blending: THREE.AdditiveBlending,
+                opacity: 0.7
+            });
+            
+            particleSystem = new THREE.Points(particles, particleMaterial);
+            scene.add(particleSystem);
+
+            // Central "AI Core"
+            const coreGeometry = new THREE.IcosahedronGeometry(5, 0);
+            const coreMaterial = new THREE.MeshStandardMaterial({
+                color: 0x4169E1, // Royal Blue
+                emissive: 0x00BFFF,
+                emissiveIntensity: 0.5,
+                metalness: 0.8,
+                roughness: 0.2,
+                wireframe: true
+            });
+            const aiCore = new THREE.Mesh(coreGeometry, coreMaterial);
+            scene.add(aiCore);
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.1);
+            scene.add(ambientLight);
+            const pointLight = new THREE.PointLight(0xffffff, 1);
+            pointLight.position.set(20, 20, 20);
+            scene.add(pointLight);
+
+            // Event Listeners
+            window.addEventListener('resize', onWindowResize, false);
+            document.addEventListener('mousemove', onMouseMove, false);
+
+            animate();
+            gsap.to(canvas, { opacity: 1, duration: 2 });
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function onMouseMove(event) {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const elapsedTime = Date.now() * 0.0001;
+            particleSystem.rotation.y = elapsedTime;
+            scene.children.find(child => child.geometry.type === "IcosahedronGeometry").rotation.x += 0.001;
+            scene.children.find(child => child.geometry.type === "IcosahedronGeometry").rotation.y += 0.001;
+            
+            // Mouse interaction with particles
+            camera.position.x += (mouse.x * 5 - camera.position.x) * 0.05;
+            camera.position.y += (mouse.y * 5 - camera.position.y) * 0.05;
+            camera.lookAt(scene.position);
+
+            renderer.render(scene, camera);
+        }
+        
+        // =================================================================
+        // PART 2: UI ANIMATIONS & INTERACTIONS (GSAP & VANILLA JS)
+        // =================================================================
+        
+        function initUI() {
+            // Animate landing page on load
+            const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+            tl.to('.header', { opacity: 1, y: 0, duration: 1, delay: 0.2 })
+              .to('.hero .headline', { opacity: 1, y: 0, duration: 1 }, "-=0.7")
+              .to('.hero .subheadline', { opacity: 1, y: 0, duration: 1 }, "-=0.7")
+              .to('.hero .cta-buttons', { opacity: 1, y: 0, duration: 1 }, "-=0.7")
+              .fromTo('.feature-card', 
+                { opacity: 0, y: 50 }, 
+                { opacity: 1, y: 0, duration: 0.5, stagger: 0.2 }, 
+                "-=0.5"
+              );
+
+            // Modal logic
+            const uploadBtn = document.getElementById('upload-btn');
+            const uploadModal = document.getElementById('upload-modal');
+            const analyzeBtn = document.getElementById('analyze-btn');
+            const loader = document.getElementById('loader');
+            const dropArea = document.getElementById('drop-area');
+
+            uploadBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                uploadModal.classList.add('active');
+            });
+            
+            uploadModal.addEventListener('click', (e) => {
+                if (e.target === uploadModal) {
+                    uploadModal.classList.remove('active');
+                }
+            });
+            
+            analyzeBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                dropArea.style.display = 'none';
+                analyzeBtn.style.display = 'none';
+                loader.style.display = 'block';
+
+                // Simulate analysis
+                setTimeout(() => {
+                    transitionToDashboard();
+                    uploadModal.classList.remove('active');
+                }, 2500);
+            });
+        }
+        
+        function transitionToDashboard() {
+            const landingPage = document.getElementById('landing-page');
+            const dashboard = document.getElementById('dashboard');
+
+            const tl = gsap.timeline({
+                onComplete: () => {
+                    landingPage.style.display = 'none';
+                    dashboard.style.display = 'block';
+                    initDashboardVisuals();
+                }
+            });
+            tl.to(landingPage, { opacity: 0, duration: 0.5 });
+        }
+        
+        // =================================================================
+        // PART 3: DASHBOARD VISUALIZERS (CHART.JS & CUSTOM)
+        // =================================================================
+
+        function initDashboardVisuals() {
+            // 1. Animate ATS Score
+            const scoreText = document.getElementById('ats-score-text');
+            const progressCircle = document.querySelector('.ats-circle-progress');
+            const radius = progressCircle.r.baseVal.value;
+            const circumference = 2 * Math.PI * radius;
+            const targetScore = 88;
+            const offset = circumference - (targetScore / 100) * circumference;
+
+            gsap.to(progressCircle, {
+                strokeDashoffset: offset,
+                duration: 2,
+                ease: "power2.out"
+            });
+            
+            gsap.to({ val: 0 }, {
+                val: targetScore,
+                duration: 2,
+                ease: "power2.out",
+                onUpdate: function() {
+                    scoreText.textContent = Math.round(this.targets()[0].val) + '%';
+                }
+            });
+
+            // 2. Render Skills Chart
+            const ctx = document.getElementById('skillsChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['JavaScript', 'React', 'Node.js', 'CSS', 'System Design', 'Communication'],
+                    datasets: [{
+                        label: 'Skill Profile',
+                        data: [30, 25, 20, 10, 10, 5],
+                        backgroundColor: [
+                            'hsla(207, 90%, 54%, 0.7)',
+                            'hsla(207, 90%, 64%, 0.7)',
+                            'hsla(207, 90%, 44%, 0.7)',
+                            'hsla(207, 90%, 74%, 0.7)',
+                            'hsla(280, 80%, 60%, 0.7)',
+                            'hsla(280, 80%, 70%, 0.7)',
+                        ],
+                        borderColor: 'rgba(255, 255, 255, 0.1)',
+                        borderWidth: 1,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: 'white'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // =================================================================
+        // INITIALIZE EVERYTHING
+        // =================================================================
+        init3DBackground();
+        initUI();
+    });
+    </script>
+</body>
+</html>
