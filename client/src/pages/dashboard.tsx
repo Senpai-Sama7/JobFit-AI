@@ -7,7 +7,7 @@ import { useSubscriptionLimits, useCreateSubscription } from "@/hooks/use-subscr
 import SubscriptionModal from "@/components/subscription-modal";
 import ResumeCard from "@/components/resume-card";
 import Navigation from "@/components/navigation";
-import FileUpload from "@/components/file-upload";
+import { FileUpload } from "@/components/file-upload";
 import RoleRecommendations from "@/components/role-recommendations";
 import SkillProfile from "@/components/skill-profile";
 import TailoringWorkspace from "@/components/tailoring-workspace";
