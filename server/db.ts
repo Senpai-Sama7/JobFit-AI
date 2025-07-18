@@ -8,4 +8,5 @@ if (!process.env.DATABASE_URL) {
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
-export const db = drizzle(pool, { schema });
+// Cast pool to any to satisfy drizzle's NodePgClient type
+export const db = drizzle(pool as any, { schema });

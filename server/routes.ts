@@ -21,7 +21,7 @@ router.post('/api/resumes/upload', upload.single('resume'), async (req, res) => 
     const [newResume] = await db
       .insert(resumes)
       .values({
-        fileName: req.file.originalname,
+        originalFileName: req.file.originalname,
         s3Key: simulatedS3Key,
         processingStatus: 'processing',
       })

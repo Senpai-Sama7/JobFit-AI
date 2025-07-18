@@ -6,13 +6,13 @@ import { eq } from 'drizzle-orm';
 export async function processResume(resumeId: number, fileBuffer: Buffer) {
   try {
     const data = await pdf(fileBuffer);
-    const parsedContent = data.text;
+    const parsedData = { text: data.text };
     const atsScore = Math.floor(Math.random() * 31) + 70;
     const skillProfile = { skills: ['React', 'Node.js', 'PostgreSQL', 'AI Integration'] };
 
     await db.update(resumes)
       .set({
-        parsedContent,
+        parsedData,
         atsScore,
         skillProfile,
         processingStatus: 'processed',
