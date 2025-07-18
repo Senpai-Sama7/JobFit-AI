@@ -11,3 +11,4 @@ vite.config.ts.*
 #Ignore insiders AI rules
 .github/copilot-instructions.md
 >>>>>>> 4943394 (Save local changes)
+.vscode/mcp.json
