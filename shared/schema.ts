@@ -1,4 +1,13 @@
-import { pgTable, serial, text, varchar, timestamp, integer, jsonb } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  serial,
+  text,
+  varchar,
+  timestamp,
+  integer,
+  jsonb,
+} from 'drizzle-orm/pg-core';
+import { InferInsertModel, InferSelectModel } from 'drizzle-orm';
 
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
@@ -37,3 +46,23 @@ export const tailoredResumes = pgTable('tailored_resumes', {
   improvements: jsonb('improvements'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
+// ------- Types -------
+export type User = InferSelectModel<typeof users>;
+export type InsertUser = InferInsertModel<typeof users>;
+
+export type Resume = InferSelectModel<typeof resumes>;
+export type InsertResume = InferInsertModel<typeof resumes>;
+
+export type RoleRecommendation = InferSelectModel<typeof roleRecommendations>;
+export type InsertRoleRecommendation = InferInsertModel<typeof roleRecommendations>;
+
+export type TailoredResume = InferSelectModel<typeof tailoredResumes>;
+export type InsertTailoredResume = InferInsertModel<typeof tailoredResumes>;
+
+export interface SkillProfile {
+  skills: string[];
+}
+
+export interface ParsedResume {
+  text: string;
+}
