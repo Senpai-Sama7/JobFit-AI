@@ -1,0 +1,10 @@
+{
+  "root": true,
+  "env": {"es2021": true},
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint"],
+  "extends": [],
+  "env": {"browser": true, "node": true, "es2021": true},
+  "parserOptions": {"ecmaVersion": 2020, "sourceType": "module"},
+  "rules": {}
+}
