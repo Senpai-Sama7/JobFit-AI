@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import axios from "axios";
 import type { Resume, ParsedResume } from "@shared/schema";
 
 export function useResumes() {
@@ -108,3 +109,34 @@ export function useDeleteResume() {
     },
   });
 }
+
+// Mutation for uploading a resume
+const uploadResume = async (file: File) => {
+  const formData = new FormData();
+  formData.append('resume', file);
+  const { data } = await axios.post('/api/resumes/upload', formData);
+  return data;
+};
+
+export const useUploadResume = () => {
+  return useMutation({ mutationFn: uploadResume });
+};
+
+// Query for checking resume status
+const fetchResumeStatus = async (resumeId: number) => {
+  const { data } = await axios.get(`/api/resumes/${resumeId}/status`);
+  return data;
+};
+
+export const useResumeStatus = (resumeId: number | null) => {
+  return useQuery({
+    queryKey: ['resumeStatus', resumeId],
+    queryFn: () => fetchResumeStatus(resumeId!),
+    enabled: !!resumeId,
+    refetchInterval: (query) => {
+      return query.state.data?.status === 'processed' || query.state.data?.status === 'error'
+        ? false
+        : 2000;
+    },
+  });
+};
