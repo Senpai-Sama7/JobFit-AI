@@ -15,7 +15,8 @@ VANTA.GLOBE({
 
 // Setup Chart.js radar chart for Skill Profile visualization
 const ctx = document.getElementById('skillChart').getContext('2d');
-new Chart(ctx, {
+// Store chart instance for potential future updates or interactions
+const skillChart = new Chart(ctx, {
   type: 'radar',
   data: {
     labels: ['Technical Skills', 'Soft Skills', 'Domain Knowledge'],
