@@ -4,4 +4,10 @@ dist
 server/public
 vite.config.ts.*
 *.tar.gz
+<<<<<<< HEAD
 .env
+=======
+
+#Ignore insiders AI rules
+.github/copilot-instructions.md
+>>>>>>> 4943394 (Save local changes)
