@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JobFit AI – Intelligent Resume Analysis & Optimization</title>
+  <meta name="description" content="Optimize your resume and match to the best jobs using AI-powered analysis, role recommendations, and tailored resume generation.">
+  <link rel="icon" href="favicon.png" type="image/png" />
+  <link rel="stylesheet" href="wdsgn.css" />
+  <link rel="preload" href="https://fonts.googleapis.com/css?family=Inter:400,600,700&display=swap" as="style">
+  <link href="https://fonts.googleapis.com/css?family=Inter:400,600,700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --jf-accent: #00ffff;
+      --jf-bg: #181826;
+      --jf-card: #232346;
+      --jf-border: #31315a;
+    }
+    body { background: var(--jf-bg); color: #fff; font-family: 'Inter', 'Onest', Arial, sans-serif; }
+    .jf-hero__logo { height: 48px; }
+    .jf-accent { color: var(--jf-accent); }
+    .jf-btn--main { background: var(--jf-accent); color: #000032; font-weight: 700; }
+    .jf-btn--outline { border: 2px solid var(--jf-accent); color: var(--jf-accent); background: transparent; }
+    .jf-feature__icon { width: 40px; margin-bottom: .5em; }
+    .jf-section__dark { background: var(--jf-card); border-radius: 24px; }
+    .jf-canvas-box { background: var(--jf-card); padding: 2rem; border-radius: 2rem; margin-top: 2rem; }
+    .jf-contact-form { background: var(--jf-card); border-radius: 1.5rem; padding: 2rem; }
+    .jf-form label { font-weight: 600; }
+    .jf-form input, .jf-form textarea {
+      background: #181826; color: #fff; border: 1px solid var(--jf-border);
+      border-radius: .75em; padding: .75em 1em; width: 100%; margin-top: .2em;
+    }
+    .jf-form .row { display: flex; gap: 1rem; }
+    @media (max-width: 800px) {
+      .jf-form .row { flex-direction: column; }
+      .jf-section__dark { padding: 1rem !important; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER & NAV -->
+<header class="f-header f-header--sticky">
+  <div class="a-container--full f-header__container">
+    <div class="a-flex a-flex--align-center">
+      <div class="a-flex__item f-header__logo">
+        <img src="Logo.png" alt="JobFit AI Logo" class="jf-hero__logo"/>
+      </div>
+      <div class="a-flex__item--auto f-header__navigation">
+        <nav aria-label="Navigation" class="f-navigation f-navigation--primary">
+          <ul class="f-navigation__list f-navigation__list--primary">
+            <li><a href="#howitworks">How it Works</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#contact">Contact</a></li>
+          </ul>
+        </nav>
+      </div>
+      <div class="a-flex__item a-hide:l a-hide:m a-hide:xl f-header__user">
+        <a href="#signin" class="a-button jf-btn--main" style="border-radius: 12px; padding: .75em 2em;">Sign In</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- HERO SECTION -->
+<section class="f-heading f-heading--hero" style="padding: 5rem 0 3rem 0;">
+  <div class="a-container f-heading__container f-hero__container" style="text-align:center;">
+    <img src="Logo.png" alt="JobFit AI Logo" class="jf-hero__logo" style="margin-bottom: 1.5rem;"/>
+    <h1 class="f-hero__title" style="font-size:3rem; font-weight: 700; letter-spacing:-0.02em;">
+      Optimize Your Resume<br>
+      <span class="jf-accent">with JobFit AI</span>
+    </h1>
+    <p class="f-hero__subtitle" style="font-size:1.3rem; margin: 1rem 0 2.5rem 0; max-width:600px; margin-left:auto; margin-right:auto;">
+      AI-powered analysis, role recommendations, and tailored resume generation to maximize your job application success.<br>
+      <span style="color:#d1fdff;">Let advanced AI and real-time job market data work for you.</span>
+    </p>
+    <div class="a-buttons f-hero__buttons" style="justify-content:center;">
+      <a href="#howitworks" class="a-button jf-btn--main" style="border-radius: 12px; font-size:1.1em; margin-right:1em;">Get Started</a>
+      <a href="#contact" class="a-button jf-btn--outline" style="border-radius: 12px; font-size:1.1em;">Contact Us</a>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="howitworks" class="f-section jf-section__dark" style="padding:3rem 0 2.5rem 0; margin-bottom:2rem;">
+  <div class="a-container f-section__container" style="max-width: 1050px;">
+    <header class="f-section__header f-section__header--center" style="margin-bottom:2rem;">
+      <small class="f-badge f-badge--accent">How It Works</small>
+      <h2 style="font-size:2.3rem; font-weight:700;">How JobFit AI Empowers Your Job Search</h2>
+    </header>
+    <ul class="f-procedures" style="display:flex; flex-wrap:wrap; justify-content:space-between; gap:2rem;">
+      <li class="f-procedure jf-section__dark" style="flex:1 1 220px; min-width:220px; padding:1.5em;">
+        <span class="f-number" style="font-size:2rem;">1</span>
+        <h3>Upload Your Resume</h3>
+        <p>Upload your resume (PDF, DOCX, TXT, etc). We’ll instantly parse your experience, education, and skills.</p>
+      </li>
+      <li class="f-procedure jf-section__dark" style="flex:1 1 220px; min-width:220px; padding:1.5em;">
+        <span class="f-number" style="font-size:2rem;">2</span>
+        <h3>AI Profile Analysis</h3>
+        <p>Advanced AI analyzes your resume, categorizing your <strong>technical, soft, and domain-specific skills</strong> and computing an ATS compatibility score.</p>
+      </li>
+      <li class="f-procedure jf-section__dark" style="flex:1 1 220px; min-width:220px; padding:1.5em;">
+        <span class="f-number" style="font-size:2rem;">3</span>
+        <h3>Personalized Role Recommendations</h3>
+        <p>Our AI suggests relevant job roles that fit your profile using real-time job market data, showing “fit” scores for each match.</p>
+      </li>
+      <li class="f-procedure jf-section__dark" style="flex:1 1 220px; min-width:220px; padding:1.5em;">
+        <span class="f-number" style="font-size:2rem;">4</span>
+        <h3>Tailored Resume Generation</h3>
+        <p>Select a job posting, and JobFit AI generates a tailored resume optimized for that role – with improvement suggestions.</p>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features" class="f-section" style="padding:3rem 0 1rem 0;">
+  <div class="a-container f-section__container" style="max-width: 1050px;">
+    <header class="f-section__header f-section__header--center" style="margin-bottom:2rem;">
+      <small class="f-badge f-badge--accent">Key Features</small>
+      <h2 style="font-size:2rem; font-weight:700;">Everything You Need for Smarter Job Applications</h2>
+    </header>
+    <div class="f-features" style="display:flex; flex-wrap:wrap; gap:2rem;">
+      <div class="f-feature jf-section__dark" style="flex:1 1 280px; padding:2em;">
+        <img src="https://img.icons8.com/fluency/48/resume-website.png" class="jf-feature__icon" alt="Resume Matching">
+        <h3>Resume Matching & Tailoring</h3>
+        <p>AI-driven matching of your resume to job descriptions. Instantly create tailored resumes for each role, with actionable suggestions for improvement.</p>
+      </div>
+      <div class="f-feature jf-section__dark" style="flex:1 1 280px; padding:2em;">
+        <img src="https://img.icons8.com/fluency/48/search--v2.png" class="jf-feature__icon" alt="Job Recommendations">
+        <h3>Personalized Job Recommendations</h3>
+        <p>Get real-time AI job recommendations based on your profile. See “fit” scores and focus your search on the most relevant roles for you.</p>
+      </div>
+      <div class="f-feature jf-section__dark" style="flex:1 1 280px; padding:2em;">
+        <img src="https://img.icons8.com/fluency/48/line-chart.png" class="jf-feature__icon" alt="Profile Analysis">
+        <h3>AI Profile Analysis</h3>
+        <p>Comprehensive skill analysis and ATS scoring. Visualize your strengths across technical, soft, and domain skills with interactive charts.</p>
+      </div>
+    </div>
+
+    <!-- SKILL PROFILE CHART DEMO -->
+    <div class="jf-canvas-box" style="margin:2rem auto 0 auto; max-width:500px; text-align:center;">
+      <h3 style="margin-bottom:1rem;">Your Skill Profile at a Glance</h3>
+      <canvas id="skillChart" width="350" height="350" aria-label="Skill profile chart"></canvas>
+      <div style="color:#8ff6ff; margin-top:.6em; font-size:.97em;">
+        *This chart updates after your resume is analyzed*
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<footer id="contact" class="f-section jf-section__dark" style="margin-top:3rem; padding:3rem 0 1.5rem 0;">
+  <div class="a-container" style="max-width: 700px; margin:auto;">
+    <header class="f-section__header f-section__header--center" style="margin-bottom:1.5rem;">
+      <h2>Contact Us</h2>
+      <p style="color:#baf9f9;">Questions? Want to learn more? We’re here to help.</p>
+    </header>
+    <form id="contactForm" class="jf-contact-form jf-form">
+      <div class="row" style="gap:1rem;">
+        <div style="flex:1;">
+          <label for="name">Name *</label>
+          <input type="text" id="name" name="name" required placeholder="Your Name"/>
+        </div>
+        <div style="flex:1;">
+          <label for="email">Email *</label>
+          <input type="email" id="email" name="email" required placeholder="you@example.com"/>
+        </div>
+      </div>
+      <div style="margin-top:1rem;">
+        <label for="message">Message *</label>
+        <textarea id="message" name="message" rows="4" required placeholder="How can we help you?"></textarea>
+      </div>
+      <button type="submit" class="a-button jf-btn--main" style="margin-top:1.7em; border-radius: 10px; width: 100%;">Send Message</button>
+    </form>
+    <p style="margin-top:2em; color:#93e2e2; text-align:center; font-size:1em;">&copy; 2025 JobFit AI. All rights reserved.</p>
+  </div>
+</footer>
+
+<!-- SCRIPTS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r121/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vanta@0.5.24/dist/vanta.globe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+  // Globe background (optionally apply to hero or whole page)
+  VANTA.GLOBE({
+    el: ".f-heading--hero",
+    mouseControls: true,
+    touchControls: true,
+    minHeight: 400.00,
+    minWidth: 200.00,
+    scale: 1.0,
+    scaleMobile: 1.0,
+    color: 0x00ffff,
+    color2: 0x232346,
+    backgroundColor: 0x181826
+  });
+
+  // Skill Chart Demo (placeholder data)
+  const ctx = document.getElementById('skillChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: ['Technical Skills', 'Soft Skills', 'Domain Skills'],
+      datasets: [{
+        label: 'Profile',
+        data: [82, 70, 77], // Example static data, replace with real
+        fill: true,
+        backgroundColor: 'rgba(0,255,255,0.13)',
+        borderColor: '#00ffff',
+        pointBackgroundColor: '#00ffff'
+      }]
+    },
+    options: {
+      responsive: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        r: {
+          angleLines: { display: false },
+          suggestedMin: 0,
+          suggestedMax: 100,
+          pointLabels: { color: '#00ffff', font: { size: 16 } },
+          grid: { color: '#293d4c' },
+          ticks: { color: '#baf9f9' }
+        }
+      }
+    }
+  });
+
+  // Contact form simple handler
+  document.getElementById('contactForm').onsubmit = function(e){
+    e.preventDefault();
+    alert('Thank you for contacting JobFit AI! We will respond soon.');
+    this.reset();
+  };
+</script>
+
+</body>
+</html>
+
