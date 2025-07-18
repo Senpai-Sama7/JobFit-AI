@@ -46,7 +46,6 @@ export const tailoredResumes = pgTable('tailored_resumes', {
   improvements: jsonb('improvements'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
-
 // ------- Types -------
 export type User = InferSelectModel<typeof users>;
 export type InsertUser = InferInsertModel<typeof users>;
