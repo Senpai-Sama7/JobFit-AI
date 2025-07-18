@@ -19,13 +19,14 @@ export const users = pgTable('users', {
 export const resumes = pgTable('resumes', {
   id: serial('id').primaryKey(),
   userId: integer('user_id').references(() => users.id),
-  fileName: varchar('file_name', { length: 256 }).notNull(),
+  originalFileName: varchar('original_file_name', { length: 256 }),
   s3Key: text('s3_key').notNull(),
-  parsedContent: text('parsed_content'),
+  parsedData: jsonb('parsed_data'),
   atsScore: integer('ats_score'),
   skillProfile: jsonb('skill_profile'),
   processingStatus: varchar('processing_status', { length: 50 }).default('pending'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
 export const roleRecommendations = pgTable('role_recommendations', {
@@ -42,8 +43,19 @@ export const tailoredResumes = pgTable('tailored_resumes', {
   id: serial('id').primaryKey(),
   originalResumeId: integer('resume_id').references(() => resumes.id).notNull(),
   jobDescription: text('job_description').notNull(),
-  tailoredContent: text('tailored_content'),
+  tailoredContent: jsonb('tailored_content'),
   improvements: jsonb('improvements'),
+  atsScore: integer('ats_score'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const activities = pgTable('activities', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id).notNull(),
+  type: varchar('type', { length: 50 }).notNull(),
+  title: varchar('title', { length: 256 }).notNull(),
+  description: text('description'),
+  metadata: jsonb('metadata'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 // ------- Types -------
@@ -59,10 +71,13 @@ export type InsertRoleRecommendation = InferInsertModel<typeof roleRecommendatio
 export type TailoredResume = InferSelectModel<typeof tailoredResumes>;
 export type InsertTailoredResume = InferInsertModel<typeof tailoredResumes>;
 
+export type Activity = InferSelectModel<typeof activities>;
+export type InsertActivity = InferInsertModel<typeof activities>;
+
 export interface SkillProfile {
   skills: string[];
 }
 
 export interface ParsedResume {
-  text: string;
+  [key: string]: any;
 }
