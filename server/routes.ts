@@ -1,5 +1,6 @@
-import { Router } from 'express';
+import { Router, type Request, type Response } from 'express';
 import multer from 'multer';
+import { z } from 'zod';
 import { db } from './db';
 import {
   resumes,
@@ -19,6 +20,29 @@ const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 },
 });
+
+const idSchema = z.coerce.number().int().positive();
+const tailorSchema = z.object({ jobDescription: z.string().min(1) });
+const exportSchema = z.object({ format: z.enum(['txt', 'csv']) });
+
+async function withResume(
+  req: Request,
+  res: Response,
+  handler: (resume: any, resumeId: number) => Promise<void>,
+) {
+  const idResult = idSchema.safeParse(req.params.id);
+  if (!idResult.success) {
+    res.status(400).json({ error: 'Invalid resume id' });
+    return;
+  }
+  const resumeId = idResult.data;
+  const [resume] = await db.select().from(resumes).where(eq(resumes.id, resumeId));
+  if (!resume) {
+    res.status(404).json({ error: 'Resume not found' });
+    return;
+  }
+  await handler(resume, resumeId);
+}
 
 router.post('/api/resumes/upload', upload.single('resume'), async (req, res) => {
   if (!req.file) {
@@ -47,19 +71,110 @@ router.post('/api/resumes/upload', upload.single('resume'), async (req, res) => 
   }
 });
 
-router.get('/api/resumes/:id/status', async (req, res) => {
-  const resumeId = parseInt(req.params.id, 10);
-  if (isNaN(resumeId)) {
-    return res.status(400).json({ error: 'Invalid resume id' });
-  }
-  try {
-    const [resume] = await db.select().from(resumes).where(eq(resumes.id, resumeId));
-    if (!resume) return res.status(404).json({ error: 'Resume not found' });
+router.get('/api/resumes/:id/status', (req, res) =>
+  withResume(req, res, async (resume) => {
     res.json({ status: resume.processingStatus, atsScore: resume.atsScore });
-  } catch (error) {
-    console.error('Status Error:', error);
-    res.status(500).json({ error: 'Failed to fetch status.' });
-  }
+  })
+);
+
+router.post('/api/resumes/:id/optimize', (req, res) =>
+  withResume(req, res, async (resume, resumeId) => {
+    const originalScore = resume.atsScore || 0;
+    const text = (resume.parsedData as any)?.text || '';
+
+    const openai = getOpenAIClient();
+    const prompt = `Improve the following resume. Respond in JSON with keys: "newScore" (number between 0 and 100) and "improvements" (array of strings as bullet points). Resume:\n${text}`;
+    const aiResponse = await openai.chat.completions.create({
+      model: 'gpt-3.5-turbo',
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.2,
+    });
+
+    const reply = aiResponse.choices[0]?.message?.content || '';
+    let newScore = originalScore;
+    let improvements: string[] = [];
+    try {
+      const parsed = JSON.parse(reply);
+      newScore = Number(parsed.newScore) || originalScore;
+      if (Array.isArray(parsed.improvements)) {
+        improvements = parsed.improvements.map(String);
+      }
+    } catch (e) {
+      console.error('Failed to parse AI response for optimization:', e);
+    }
+
+    await db.update(resumes).set({ atsScore: newScore }).where(eq(resumes.id, resumeId));
+
+    res.json({ oldScore: originalScore, newScore, improvements });
+  })
+);
+
+router.post('/api/resumes/:id/tailor', async (req, res) => {
+  const body = tailorSchema.safeParse(req.body);
+  if (!body.success) return res.status(400).json({ error: 'Invalid request' });
+  const { jobDescription } = body.data;
+  await withResume(req, res, async (resume, resumeId) => {
+    const text = (resume.parsedData as any)?.text || '';
+    const tailored = await tailorResume(text, jobDescription);
+    const [saved] = await db
+      .insert(tailoredResumes)
+      .values({
+        originalResumeId: resumeId,
+        jobDescription,
+        tailoredContent: tailored.tailoredContent,
+        improvements: tailored.improvements,
+        atsScore: tailored.atsScore,
+      })
+      .returning();
+
+    res.json(saved);
+  });
+});
+
+router.get('/api/resumes/:id/recommendations', (req, res) =>
+  withResume(req, res, async (resume, resumeId) => {
+    const skillProfile = resume.skillProfile as SkillProfile | null;
+    if (!skillProfile) {
+      res.status(400).json({ error: 'Resume lacks skill profile' });
+      return;
+    }
+    const recommendations = await generateRoleRecommendations(skillProfile);
+    await db
+      .insert(roleRecommendations)
+      .values(recommendations.map((r) => ({ ...r, resumeId })));
+    res.json(recommendations);
+  })
+);
+
+router.post('/api/resumes/:id/export', async (req, res) => {
+  const body = exportSchema.safeParse(req.body);
+  if (!body.success) return res.status(400).json({ error: 'Invalid request' });
+  const { format } = body.data;
+  await withResume(req, res, async (resume, resumeId) => {
+    let content = (resume.parsedData as any)?.text || '';
+    const [tailored] = await db
+      .select()
+      .from(tailoredResumes)
+      .where(eq(tailoredResumes.originalResumeId, resumeId))
+      .orderBy(desc(tailoredResumes.createdAt))
+      .limit(1);
+    if (tailored) {
+      content = (tailored.tailoredContent as string) || content;
+    }
+
+    if (format === 'txt') {
+      res.setHeader('Content-Type', 'text/plain');
+      res.setHeader('Content-Disposition', 'attachment; filename="resume.txt"');
+      res.send(content);
+    } else if (format === 'csv') {
+      const csv = `"resume"\n"${content.replace(/"/g, '""')}"`;
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', 'attachment; filename="resume.csv"');
+      res.send(csv);
+    } else {
+      res.status(400).json({ error: 'Unsupported export format.' });
+    }
+  });
 });
 
 router.post('/api/resumes/:id/optimize', async (req, res) => {
