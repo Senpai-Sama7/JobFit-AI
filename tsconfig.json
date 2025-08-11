@@ -5,7 +5,8 @@
     "build",
     "dist",
     "**/*.test.ts",
-    "server/storage.ts"
+    "server/storage.ts",
+    "vite.config.ts"
   ],
   "compilerOptions": {
     "incremental": true,
