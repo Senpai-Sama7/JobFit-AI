@@ -5,12 +5,13 @@ import {
   resumes,
   roleRecommendations,
   tailoredResumes,
+  type SkillProfile,
 } from '../shared/schema';
 import { processResume } from './services/parser';
 import { tailorResume } from './services/tailoring';
 import { generateRoleRecommendations } from './services/recommender';
-import OpenAI from 'openai';
-import { eq } from 'drizzle-orm';
+import { getOpenAIClient } from './services/openai';
+import { eq, desc } from 'drizzle-orm';
 
 const router = Router();
 
@@ -73,7 +74,7 @@ router.post('/api/resumes/:id/optimize', async (req, res) => {
     const originalScore = resume.atsScore || 0;
     const text = (resume.parsedData as any)?.text || '';
 
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    const openai = getOpenAIClient();
     const prompt = `Improve the following resume and provide an ATS score between 0 and 100 followed by improvements as bullet points. Resume:\n${text}`;
     const aiResponse = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
@@ -139,10 +140,17 @@ router.get('/api/resumes/:id/recommendations', async (req, res) => {
     return res.status(400).json({ error: 'Invalid resume id' });
   }
   try {
-    const recommendations = await generateRoleRecommendations();
+    const [resume] = await db.select().from(resumes).where(eq(resumes.id, resumeId));
+    if (!resume) return res.status(404).json({ error: 'Resume not found' });
+
+    const skillProfile = resume.skillProfile as SkillProfile | null;
+    if (!skillProfile) {
+      return res.status(400).json({ error: 'Resume lacks skill profile' });
+    }
+    const recommendations = await generateRoleRecommendations(skillProfile);
     await db
       .insert(roleRecommendations)
-      .values(recommendations.map(r => ({ ...r, resumeId })));
+      .values(recommendations.map((r) => ({ ...r, resumeId })));
     res.json(recommendations);
   } catch (error) {
     console.error('Recommendations Error:', error);
@@ -165,6 +173,7 @@ router.post('/api/resumes/:id/export', async (req, res) => {
       .select()
       .from(tailoredResumes)
       .where(eq(tailoredResumes.originalResumeId, resumeId))
+      .orderBy(desc(tailoredResumes.createdAt))
       .limit(1);
     if (tailored) {
       content = (tailored.tailoredContent as string) || content;

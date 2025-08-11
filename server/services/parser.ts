@@ -3,7 +3,7 @@ import { db } from '../db';
 import { resumes, SkillProfile } from '../../shared/schema';
 import { eq } from 'drizzle-orm';
 import { extractParsedData } from './parserUtils';
-import OpenAI from 'openai';
+import { getOpenAIClient } from './openai';
 
 /**
  * Extract raw text from PDF or DOCX buffer.
@@ -40,7 +40,7 @@ export async function processResume(resumeId: number, fileBuffer: Buffer, fileNa
     const skillProfile: SkillProfile = { skills: structured.skills || [] };
 
     // 3. Initialize OpenAI client and analyze for ATS score and feedback
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    const openai = getOpenAIClient();
     const prompt = `You are an expert resume analyst. Evaluate the following resume and do three things:
 1. Rate its ATS compatibility on a scale of 0 to 100.
 2. List the top 5 technical or professional skills evident in the resume.
