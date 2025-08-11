@@ -5,20 +5,13 @@
   "license": "MIT",
   "scripts": {
     "dev": "NODE_ENV=development tsx server/index.ts",
-"build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
-
-"start": "NODE_ENV=production node dist/index.js",
-
-"check": "tsc --noEmit",
-
-"db:push": "drizzle-kit push",
-
-"lint": "eslint . --ext .js,.jsx,.ts,.tsx",
-
-"typecheck": "tsc --noEmit --skipLibCheck || true",
-
-"test": "vitest run --passWithNoTests",
-    
+    "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
+    "start": "NODE_ENV=production node dist/index.js",
+    "check": "tsc --noEmit",
+    "db:push": "drizzle-kit push",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "typecheck": "tsc --noEmit --skipLibCheck || true",
+    "test": "vitest run --passWithNoTests",
     "format": "prettier --check ."
   },
   "dependencies": {
@@ -70,15 +63,15 @@
     "framer-motion": "^11.13.1",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.453.0",
+    "mammoth": "^1.7.0",
     "memorystore": "^1.6.7",
     "multer": "^2.0.1",
     "nanoid": "^3.3.11",
     "next-themes": "^0.4.6",
+    "openai": "^4.8.0",
     "passport": "^0.7.0",
     "passport-local": "^1.0.0",
     "pdf-parse": "^1.1.1",
-    "mammoth": "^1.7.0",
-    "openai": "^4.8.0",
     "react": "^18.3.1",
     "react-day-picker": "^8.10.1",
     "react-dom": "^18.3.1",
@@ -98,8 +91,6 @@
     "zod-validation-error": "^3.4.0"
   },
   "devDependencies": {
-    "@replit/vite-plugin-cartographer": "^0.2.7",
-    "@replit/vite-plugin-runtime-error-modal": "^0.0.3",
     "@tailwindcss/typography": "^0.5.15",
     "@tailwindcss/vite": "^4.1.11",
     "@types/connect-pg-simple": "^7.0.3",
