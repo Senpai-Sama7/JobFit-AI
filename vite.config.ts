@@ -25,11 +25,4 @@ export default defineConfig({
       deny: ['**/.*'],
     },
   },
-  test: {
-    // Include server-side unit tests
-    root: '.',
-    include: ['server/**/*.test.ts'],
-    globals: true,
-    environment: 'node',
-  },
 });
