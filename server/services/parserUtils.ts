@@ -74,7 +74,7 @@ export function extractParsedData(text: string): ParsedResume {
     const lines = expMatch[1].trim().split(/\r?\n/);
     let current: ExperienceEntry | null = null;
     lines.forEach(line => {
-      const headerMatch = line.match(/^(.*)\|(.+)\|(.*)$/);
+      const headerMatch = line.match(/^([^|]+)\s*\|\s*([^|]+)\s*\|\s*(.*)$/);
       if (headerMatch) {
         if (current) parsed.experience.push(current);
         const [_, title, company, dates] = headerMatch;
