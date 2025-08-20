@@ -69,7 +69,7 @@ export function extractParsedData(text: string): ParsedResume {
   const parsed: ParsedResume = { contact, skills, experience: [], education: [] };
 
   // Experience
-  const expMatch = text.match(/PROFESSIONAL EXPERIENCE([\s\S]*?)\nEDUCATION/i);
+  const expMatch = text.match(/PROFESSIONAL EXPERIENCE([\s\S]*?)(?:\n[A-Z0-9 &()]+\n|$)/i);
   if (expMatch) {
     const lines = expMatch[1].trim().split(/\r?\n/);
     let current: ExperienceEntry | null = null;
