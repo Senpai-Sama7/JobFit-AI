@@ -28,6 +28,7 @@ JobFit AI is a comprehensive web application designed to help job seekers optimi
 - **Database Provider**: Neon Database (serverless PostgreSQL)
 - **File Processing**: Multer for file upload handling
 - **Session Management**: Built-in storage system with memory-based implementation
+- **Error Handling**: Centralized middleware logs errors, returns JSON responses, and exposes stack traces in development
 
 ### Development Environment
 - **Platform**: Node.js 20, web, and PostgreSQL 16 modules
@@ -43,7 +44,7 @@ JobFit AI is a comprehensive web application designed to help job seekers optimi
 4. **Skill Profiling**: Categorizes and evaluates technical, soft, and domain-specific skills
 
 ### AI-Powered Features
-- **Role Recommendations**: Matches user skills to relevant job positions using semantic analysis
+- **Role Recommendations**: Matches user skills to relevant job positions using semantic analysis with fit scores normalized to 0–100
 - **Resume Tailoring**: Customizes resume content based on specific job descriptions
 - **Improvement Suggestions**: Provides actionable feedback for resume optimization
 
@@ -53,7 +54,7 @@ JobFit AI is a comprehensive web application designed to help job seekers optimi
 - **Resume Builder**: Step-by-step form for manual resume creation with validation
 - **Resume Cards**: Interactive cards with optimization, tailoring, and export actions
 - **Skill Profile**: Visual representation of user competencies
-- **Role Recommendations**: Displays job matches with fit scores
+- **Role Recommendations**: Displays job matches with fit scores normalized to 0–100
 - **Tailoring Workspace**: Interactive editor for customizing resumes
 - **Export Modal**: Multi-format download system with optimized versions
 - **Optimization Modal**: Visual score comparison and improvement tracking
@@ -76,7 +77,7 @@ JobFit AI is a comprehensive web application designed to help job seekers optimi
 ### Database Schema
 - **Users**: Authentication and user management
 - **Resumes**: Original files, parsed content, and processing status
-- **Role Recommendations**: AI-generated job matches with scoring
+- **Role Recommendations**: AI-generated job matches with normalized 0–100 scoring
 - **Tailored Resumes**: Customized versions with improvement tracking
 - **Activities**: User action logging and analytics
 

@@ -42,11 +42,11 @@ export function extractParsedData(text: string): ParsedResume {
 
   const contact: ContactInfo = {
     name: contactBlock.split(/\r?\n/).find(line => line.trim() !== '') || '',
-    email: (contactBlock.match(/[\w.+-]+@[\w-]+\.[\w.-]+/)?.[0] ?? '').trim(),
-    phone: (contactBlock.match(/(?:\+?[\d(][\d\s-.()]{7,}\d)/)?.[0] ?? '').trim(),
-    location: (contactBlock.match(/Location:\s*(.*)/i)?.[1] ?? '').trim(),
-    linkedin: (contactBlock.match(/LinkedIn:\s*(.*)/i)?.[1] ?? '').trim(),
-    website: (contactBlock.match(/Website:\s*(.*)/i)?.[1] ?? '').trim(),
+    email: ((contactBlock.match(/[\w.+-]+@[\w-]+\.[\w.-]+/) || [''])[0]).trim(),
+    phone: ((contactBlock.match(/(?:\+?[\d(][\d\s-.()]{7,}\d)/) || [''])[0]).trim(),
+    location: (contactBlock.match(/Location:\s*(.*)/i) || ['', ''])[1].trim(),
+    linkedin: (contactBlock.match(/LinkedIn:\s*(.*)/i) || ['', ''])[1].trim(),
+    website: (contactBlock.match(/Website:\s*(.*)/i) || ['', ''])[1].trim(),
   };
 
   // Skills
@@ -69,7 +69,7 @@ export function extractParsedData(text: string): ParsedResume {
   const parsed: ParsedResume = { contact, skills, experience: [], education: [] };
 
   // Experience
-  const expMatch = text.match(/PROFESSIONAL EXPERIENCE([\s\S]*?)(?:\n[A-Z0-9 &()]+\n|$)/i);
+  const expMatch = text.match(/PROFESSIONAL EXPERIENCE([\s\S]*?)\nEDUCATION/i);
   if (expMatch) {
     const lines = expMatch[1].trim().split(/\r?\n/);
     let current: ExperienceEntry | null = null;
