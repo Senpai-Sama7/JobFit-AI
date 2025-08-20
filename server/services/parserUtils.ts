@@ -42,11 +42,11 @@ export function extractParsedData(text: string): ParsedResume {
 
   const contact: ContactInfo = {
     name: contactBlock.split(/\r?\n/).find(line => line.trim() !== '') || '',
-    email: ((contactBlock.match(/[\w.+-]+@[\w-]+\.[\w.-]+/) || [''])[0]).trim(),
-    phone: ((contactBlock.match(/(?:\+?[\d(][\d\s-.()]{7,}\d)/) || [''])[0]).trim(),
-    location: (contactBlock.match(/Location:\s*(.*)/i) || ['', ''])[1].trim(),
-    linkedin: (contactBlock.match(/LinkedIn:\s*(.*)/i) || ['', ''])[1].trim(),
-    website: (contactBlock.match(/Website:\s*(.*)/i) || ['', ''])[1].trim(),
+    email: (contactBlock.match(/[\w.+-]+@[\w-]+\.[\w.-]+/)?.[0] ?? '').trim(),
+    phone: (contactBlock.match(/(?:\+?[\d(][\d\s-.()]{7,}\d)/)?.[0] ?? '').trim(),
+    location: (contactBlock.match(/Location:\s*(.*)/i)?.[1] ?? '').trim(),
+    linkedin: (contactBlock.match(/LinkedIn:\s*(.*)/i)?.[1] ?? '').trim(),
+    website: (contactBlock.match(/Website:\s*(.*)/i)?.[1] ?? '').trim(),
   };
 
   // Skills
