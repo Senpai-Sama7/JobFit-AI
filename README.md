@@ -38,7 +38,7 @@ JobFit AI is a comprehensive web application designed to help job seekers optimi
 
 ### Resume Processing Pipeline
 1. **File Upload**: Supports PDF, DOCX, TXT, MD, RTF, and ODT formats (10MB limit)
-2. **Content Parsing**: Extracts structured data including contact info, experience, education, and skills
+2. **Content Parsing**: Extracts strongly typed data including contact info, experience, education, and skills for reliable downstream processing
 3. **ATS Scoring**: Analyzes resume compatibility with Applicant Tracking Systems
 4. **Skill Profiling**: Categorizes and evaluates technical, soft, and domain-specific skills
 
