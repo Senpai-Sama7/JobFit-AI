@@ -43,3 +43,6 @@ flowchart LR
 - The current monolithic Express API will be containerized and scaled in EKS behind an ALB with TLS.
 - Persistent state (PostgreSQL, Redis, S3) will leverage managed AWS services.
 - AI integrations will be abstracted through a provider-agnostic interface.
+- Resume parsing produces a typed structure (contact, skills, experience, education) enabling consistent processing across services.
+- Express middleware centralizes error handling, logging failures and returning JSON without crashing the server. Stack traces are exposed only in development.
+- Role recommendation fit scores are normalized to 0–100 and textual fields are trimmed to guard against malformed AI responses.
