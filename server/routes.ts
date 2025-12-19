@@ -64,6 +64,9 @@ router.post('/api/resumes/upload', upload.single('resume'), async (req, res) => 
   if (!req.file) {
     return res.status(400).json({ error: 'No resume file provided.' });
   }
+  if (!isSupportedResume(req.file)) {
+    return res.status(400).json({ error: 'Unsupported file type. Upload PDF or DOCX.' });
+  }
   try {
     const simulatedS3Key = `resumes/${Date.now()}-${req.file.originalname}`;
     const [newResume] = await db
@@ -190,6 +193,7 @@ router.post('/api/resumes/:id/export', asyncHandler(async (req, res) => {
         metadata: { resumeId, tailoredResumeId: tailored?.id, format },
       });
       res.send(content);
+      return;
     } else if (format === 'csv') {
       const escaped = content.replace(/"/g, '""');
       const csv = `"resume"\n"${escaped}"`;
@@ -202,6 +206,7 @@ router.post('/api/resumes/:id/export', asyncHandler(async (req, res) => {
         metadata: { resumeId, tailoredResumeId: tailored?.id, format },
       });
       res.send(csv);
+      return;
     } else {
       res.status(400).json({ error: 'Unsupported export format.' });
     }

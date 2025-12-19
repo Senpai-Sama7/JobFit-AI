@@ -20,13 +20,21 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
     const keyIsValid =
       typeof providedKey === 'string' &&
       crypto.timingSafeEqual(Buffer.from(providedKey), Buffer.from(apiKey));
+  if (!apiKey) {
+    return res.status(500).json({ error: "API secret is not configured" });
+  }
 
-    if (!keyIsValid) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-  } catch {
-    // This catches errors from Buffer.from or timingSafeEqual (e.g., length mismatch)
-    return res.status(401).json({ error: 'Unauthorized' });
+  const providedKey = req.headers["x-api-key"];
+  if (typeof providedKey !== 'string') {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  const keyBuf = Buffer.from(apiKey);
+  const providedKeyBuf = Buffer.from(providedKey);
+
+  // Use a constant-time comparison to prevent timing attacks.
+  if (keyBuf.length !== providedKeyBuf.length || !crypto.timingSafeEqual(keyBuf, providedKeyBuf)) {
+    return res.status(401).json({ error: "Unauthorized" });
   }
 
   const userHeader = req.headers["x-user-id"];
