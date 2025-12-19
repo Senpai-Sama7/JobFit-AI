@@ -4,8 +4,6 @@ import http from "http";
 import router from "./routes";
 import { errorHandler } from "./error";
 import { authMiddleware } from "./middleware/auth";
-import { rateLimiter } from "./middleware/rateLimit";
-import { securityHeaders } from "./middleware/securityHeaders";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
@@ -36,12 +34,12 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use('/api', rateLimiter);
 app.use(authMiddleware);
 
 (async () => {
   const server = http.createServer(app);
   app.use(router);
+  app.use(errorHandler);
 
   app.use(errorHandler);
 
