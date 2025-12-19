@@ -181,7 +181,7 @@ router.post('/api/resumes/:id/export', async (req, res) => {
       res.setHeader('Content-Disposition', 'attachment; filename="resume.txt"');
       res.send(content);
     } else if (format === 'csv') {
-      const escaped = content.replace(/"/g, '""').replace(/\n/g, '\\n');
+      const escaped = content.replace(/"/g, '""');
       const csv = `"resume"\n"${escaped}"`;
       res.setHeader('Content-Type', 'text/csv');
       res.setHeader('Content-Disposition', 'attachment; filename="resume.csv"');
