@@ -128,7 +128,7 @@ router.post('/api/resumes/:id/tailor', async (req, res) => {
       })
       .returning();
 
-    await db.update(resumes).set({ updatedAt: new Date() }).where(eq(resumes.id, resumeId));
+    await db.update(resumes).set({ updatedAt: new Date() }).where(and(eq(resumes.id, resumeId), eq(resumes.userId, req.userId!)));
     res.json(saved);
   });
 });
