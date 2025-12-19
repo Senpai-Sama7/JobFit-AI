@@ -74,7 +74,7 @@ router.post('/api/resumes/upload', upload.single('resume'), async (req, res) => 
 
     jobQueue
       .add(() => processResume(newResume.id, req.file!.buffer, req.file!.originalname))
-      .catch((error) => console.error('Background processing failed', error));
+      .catch((error) => console.error('Background processing failed for resume', { resumeId: newResume.id, error }));
 
     res.status(202).json({
       message: 'Resume upload accepted. Processing in background.',
