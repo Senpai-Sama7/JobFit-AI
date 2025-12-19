@@ -31,6 +31,10 @@ async function withResume(
   res: Response,
   handler: (resume: any, resumeId: number) => Promise<void>,
 ) {
+  if (!req.userId) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
   const idResult = idSchema.safeParse(req.params.id);
   if (!idResult.success) {
     res.status(400).json({ error: 'Invalid resume id' });
@@ -84,15 +88,15 @@ router.post('/api/resumes/upload', upload.single('resume'), async (req, res) => 
     console.error('Upload Error:', error);
     res.status(500).json({ error: 'Failed to process resume upload.' });
   }
-});
+}));
 
-router.get('/api/resumes/:id/status', (req, res) =>
+router.get('/api/resumes/:id/status', asyncHandler((req, res) =>
   withResume(req, res, async (resume) => {
     res.json({ status: resume.processingStatus, atsScore: resume.atsScore });
   })
-);
+));
 
-router.post('/api/resumes/:id/optimize', (req, res) =>
+router.post('/api/resumes/:id/optimize', asyncHandler((req, res) =>
   withResume(req, res, async (resume, resumeId) => {
     const text = (resume.parsedData as any)?.text || '';
     const schema = z.object({ newScore: z.number().int().min(0).max(100), improvements: z.array(z.string()).default([]) });
@@ -108,9 +112,9 @@ router.post('/api/resumes/:id/optimize', (req, res) =>
 
     res.json({ oldScore: resume.atsScore || 0, newScore: result.newScore, improvements: result.improvements });
   })
-);
+));
 
-router.post('/api/resumes/:id/tailor', async (req, res) => {
+router.post('/api/resumes/:id/tailor', asyncHandler(async (req, res) => {
   const body = tailorSchema.safeParse(req.body);
   if (!body.success) return res.status(400).json({ error: 'Invalid request' });
   const { jobDescription } = body.data;
@@ -131,9 +135,9 @@ router.post('/api/resumes/:id/tailor', async (req, res) => {
     await db.update(resumes).set({ updatedAt: new Date() }).where(and(eq(resumes.id, resumeId), eq(resumes.userId, req.userId!)));
     res.json(saved);
   });
-});
+}));
 
-router.get('/api/resumes/:id/recommendations', (req, res) =>
+router.get('/api/resumes/:id/recommendations', asyncHandler((req, res) =>
   withResume(req, res, async (resume, resumeId) => {
     const skillProfile = resume.skillProfile as SkillProfile | null;
     if (!skillProfile) {
@@ -148,9 +152,9 @@ router.get('/api/resumes/:id/recommendations', (req, res) =>
     await db.update(resumes).set({ updatedAt: new Date() }).where(eq(resumes.id, resumeId));
     res.json(recommendations);
   })
-);
+));
 
-router.post('/api/resumes/:id/export', async (req, res) => {
+router.post('/api/resumes/:id/export', asyncHandler(async (req, res) => {
   const body = exportSchema.safeParse(req.body);
   if (!body.success) return res.status(400).json({ error: 'Invalid request' });
   const { format, tailoredResumeId } = body.data;
@@ -179,12 +183,24 @@ router.post('/api/resumes/:id/export', async (req, res) => {
     if (format === 'txt') {
       res.setHeader('Content-Type', 'text/plain');
       res.setHeader('Content-Disposition', 'attachment; filename="resume.txt"');
+      await recordActivity({
+        userId: req.userId!,
+        type: 'export',
+        title: 'Resume TXT export',
+        metadata: { resumeId, tailoredResumeId: tailored?.id, format },
+      });
       res.send(content);
     } else if (format === 'csv') {
       const escaped = content.replace(/"/g, '""');
       const csv = `"resume"\n"${escaped}"`;
       res.setHeader('Content-Type', 'text/csv');
       res.setHeader('Content-Disposition', 'attachment; filename="resume.csv"');
+      await recordActivity({
+        userId: req.userId!,
+        type: 'export',
+        title: 'Resume CSV export',
+        metadata: { resumeId, tailoredResumeId: tailored?.id, format },
+      });
       res.send(csv);
     } else {
       res.status(400).json({ error: 'Unsupported export format.' });

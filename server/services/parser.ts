@@ -65,7 +65,7 @@ export async function processResume(resumeId: number, fileBuffer: Buffer, fileNa
   } catch (error) {
     console.error(`Error processing resume ID ${resumeId}:`, error);
     await db.update(resumes)
-      .set({ processingStatus: 'error' })
+      .set({ processingStatus: 'error', updatedAt: new Date() })
       .where(eq(resumes.id, resumeId));
   }
 }
