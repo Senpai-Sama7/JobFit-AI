@@ -3,7 +3,8 @@ import { db } from '../db';
 import { resumes, SkillProfile } from '../../shared/schema';
 import { eq } from 'drizzle-orm';
 import { extractParsedData } from './parserUtils';
-import { getOpenAIClient } from './openai';
+import { runStructuredChat } from './openai';
+import { z } from 'zod';
 
 /**
  * Extract raw text from PDF or DOCX buffer.
@@ -40,56 +41,31 @@ export async function processResume(resumeId: number, fileBuffer: Buffer, fileNa
     const skillProfile: SkillProfile = { skills: structured.skills || [] };
 
     // 3. Initialize OpenAI client and analyze for ATS score and feedback
-    const openai = getOpenAIClient();
-    const prompt = `You are an expert resume analyst. Evaluate the following resume and do three things:
-1. Rate its ATS compatibility on a scale of 0 to 100.
-2. List the top 5 technical or professional skills evident in the resume.
-3. Provide one sentence of constructive feedback to improve ATS compatibility.
-Resume Text:
-"""${text}"""`;
-    const aiResponse = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
-      messages: [{ role: 'user', content: prompt }],
-      temperature: 0.2,
+    const analysisSchema = z.object({
+      atsScore: z.number().int().min(0).max(100),
+      skills: z.array(z.string()).min(1),
+      feedback: z.string(),
     });
-    const reply = aiResponse.choices[0]?.message?.content || '';
-
-    // 4. Parse AI response for score, skills, and feedback
-    let atsScore: number | null = null;
-    const feedbackLines = reply.split(/\r?\n/).map((l: string) => l.trim()).filter(Boolean);
-    const feedback: string[] = [];
-    const aiSkills: string[] = [];
-    for (const line of feedbackLines) {
-      const scoreMatch = line.match(/(\d+)\s*\/\s*100/);
-      if (scoreMatch && atsScore === null) {
-        atsScore = parseInt(scoreMatch[1], 10);
-        continue;
-      }
-      if (/^-/.test(line) || /^\d+\./.test(line)) {
-        aiSkills.push(line.replace(/^\W+/, ''));
-        continue;
-      }
-      if (!feedback.length && /\.$/.test(line)) {
-        feedback.push(line);
-      }
-    }
-    if (atsScore === null) atsScore = 80;
-    if (!aiSkills.length) aiSkills.push('N/A');
+    const analysis = await runStructuredChat({
+      prompt: `You are an expert resume analyst. Return JSON with keys atsScore (0-100 number), skills (array of strings), and feedback (one sentence). Resume text:\n${text}`,
+      schema: analysisSchema,
+      timeoutMs: 25_000,
+    });
 
     // 5. Assemble final parsed data and update record
-    const parsedData = { ...structured, text, feedback: feedback[0] || null };
+    const parsedData = { ...structured, text, feedback: analysis.feedback };
     await db.update(resumes).set({
       parsedData,
-      skillProfile: { skills: aiSkills },
-      atsScore,
+      skillProfile: { skills: analysis.skills },
+      atsScore: analysis.atsScore,
       processingStatus: 'processed',
       updatedAt: new Date(),
     }).where(eq(resumes.id, resumeId));
-    console.log(`Resume ID ${resumeId} processed: ATS=${atsScore}`);
+    console.log(`Resume ID ${resumeId} processed: ATS=${analysis.atsScore}`);
   } catch (error) {
     console.error(`Error processing resume ID ${resumeId}:`, error);
     await db.update(resumes)
-      .set({ processingStatus: 'error' })
+      .set({ processingStatus: 'error', updatedAt: new Date() })
       .where(eq(resumes.id, resumeId));
   }
 }
