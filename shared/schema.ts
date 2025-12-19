@@ -6,6 +6,7 @@ import {
   timestamp,
   integer,
   jsonb,
+  uniqueIndex,
 } from 'drizzle-orm/pg-core';
 import { InferInsertModel, InferSelectModel } from 'drizzle-orm';
 
@@ -18,7 +19,7 @@ export const users = pgTable('users', {
 
 export const resumes = pgTable('resumes', {
   id: serial('id').primaryKey(),
-  userId: integer('user_id').references(() => users.id),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }),
   originalFileName: varchar('original_file_name', { length: 256 }),
   s3Key: text('s3_key').notNull(),
   parsedData: jsonb('parsed_data'),
@@ -29,29 +30,48 @@ export const resumes = pgTable('resumes', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-export const roleRecommendations = pgTable('role_recommendations', {
-  id: serial('id').primaryKey(),
-  resumeId: integer('resume_id').references(() => resumes.id).notNull(),
-  jobTitle: varchar('job_title', { length: 256 }),
-  companyName: varchar('company_name', { length: 256 }),
-  fitScore: integer('fit_score'),
-  description: text('description'),
-  source: text('source'),
-});
+export const roleRecommendations = pgTable(
+  'role_recommendations',
+  {
+    id: serial('id').primaryKey(),
+    resumeId: integer('resume_id').references(() => resumes.id, { onDelete: 'cascade' }).notNull(),
+    jobTitle: varchar('job_title', { length: 256 }),
+    companyName: varchar('company_name', { length: 256 }),
+    fitScore: integer('fit_score'),
+    description: text('description'),
+    source: text('source'),
+  },
+  (table) => ({
+    uniqueRoleByResume: uniqueIndex('role_recommendations_resume_title_company_idx').on(
+      table.resumeId,
+      table.jobTitle,
+      table.companyName,
+    ),
+  }),
+);
 
-export const tailoredResumes = pgTable('tailored_resumes', {
-  id: serial('id').primaryKey(),
-  originalResumeId: integer('resume_id').references(() => resumes.id).notNull(),
-  jobDescription: text('job_description').notNull(),
-  tailoredContent: jsonb('tailored_content'),
-  improvements: jsonb('improvements'),
-  atsScore: integer('ats_score'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+export const tailoredResumes = pgTable(
+  'tailored_resumes',
+  {
+    id: serial('id').primaryKey(),
+    originalResumeId: integer('resume_id').references(() => resumes.id, { onDelete: 'cascade' }).notNull(),
+    jobDescription: text('job_description').notNull(),
+    tailoredContent: jsonb('tailored_content'),
+    improvements: jsonb('improvements'),
+    atsScore: integer('ats_score'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (table) => ({
+    uniqueTailoredByJob: uniqueIndex('tailored_resumes_resume_job_idx').on(
+      table.originalResumeId,
+      table.jobDescription,
+    ),
+  }),
+);
 
 export const activities = pgTable('activities', {
   id: serial('id').primaryKey(),
-  userId: integer('user_id').references(() => users.id).notNull(),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
   type: varchar('type', { length: 50 }).notNull(),
   title: varchar('title', { length: 256 }).notNull(),
   description: text('description'),
