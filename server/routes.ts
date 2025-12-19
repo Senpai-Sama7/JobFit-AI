@@ -14,7 +14,6 @@ import { generateRoleRecommendations } from './services/recommender';
 import { runStructuredChat } from './services/openai';
 import { eq, and, desc } from 'drizzle-orm';
 import { jobQueue } from './services/jobQueue';
-import { recordActivity } from './services/audit';
 
 const router = Router();
 
@@ -50,13 +49,6 @@ async function withResume(
   await handler(resume, resumeId);
 }
 
-const asyncHandler = (
-  handler: (req: Request, res: Response, next: (err?: any) => void) => Promise<void>,
-) =>
-  (req: Request, res: Response, next: (err?: any) => void) => {
-    handler(req, res, next).catch(next);
-  };
-
 router.get('/healthz', (_req, res) => res.json({ status: 'ok' }));
 
 router.get('/readyz', async (_req, res) => {
@@ -68,7 +60,7 @@ router.get('/readyz', async (_req, res) => {
   }
 });
 
-router.post('/api/resumes/upload', upload.single('resume'), asyncHandler(async (req, res) => {
+router.post('/api/resumes/upload', upload.single('resume'), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'No resume file provided.' });
   }
@@ -86,7 +78,7 @@ router.post('/api/resumes/upload', upload.single('resume'), asyncHandler(async (
 
     jobQueue
       .add(() => processResume(newResume.id, req.file!.buffer, req.file!.originalname))
-      .catch((error) => console.error('Background processing failed', error));
+      .catch((error) => console.error('Background processing failed for resume', { resumeId: newResume.id, error }));
 
     res.status(202).json({
       message: 'Resume upload accepted. Processing in background.',
@@ -140,7 +132,7 @@ router.post('/api/resumes/:id/tailor', asyncHandler(async (req, res) => {
       })
       .returning();
 
-    await db.update(resumes).set({ updatedAt: new Date() }).where(eq(resumes.id, resumeId));
+    await db.update(resumes).set({ updatedAt: new Date() }).where(and(eq(resumes.id, resumeId), eq(resumes.userId, req.userId!)));
     res.json(saved);
   });
 }));
@@ -199,7 +191,7 @@ router.post('/api/resumes/:id/export', asyncHandler(async (req, res) => {
       });
       res.send(content);
     } else if (format === 'csv') {
-      const escaped = content.replace(/"/g, '""').replace(/\n/g, '\\n');
+      const escaped = content.replace(/"/g, '""');
       const csv = `"resume"\n"${escaped}"`;
       res.setHeader('Content-Type', 'text/csv');
       res.setHeader('Content-Disposition', 'attachment; filename="resume.csv"');
@@ -214,6 +206,6 @@ router.post('/api/resumes/:id/export', asyncHandler(async (req, res) => {
       res.status(400).json({ error: 'Unsupported export format.' });
     }
   });
-}));
+});
 
 export default router;

@@ -34,9 +34,8 @@ export class InMemoryJobQueue {
     if (this.running) return;
     this.running = true;
 
-    while (this.queue.length) {
-      const job = this.queue.shift();
-      if (!job) continue;
+    while (this.queue.length > 0) {
+      const job = this.queue.shift()!;
       try {
         const result = await this.runWithTimeout(job.fn, job.options.timeoutMs);
         job.resolve(result);
@@ -44,13 +43,18 @@ export class InMemoryJobQueue {
         if (job.attempts < job.options.retries) {
           job.attempts += 1;
           await new Promise((r) => setTimeout(r, job.options.backoffMs * job.attempts));
-          this.queue.push(job);
+          this.queue.unshift(job); // Re-queue at the front
         } else {
           job.reject(error);
         }
       }
     }
+
     this.running = false;
+    // Check if new jobs were added while processing
+    if (this.queue.length > 0) {
+      this.process();
+    }
   }
 
   private runWithTimeout<T>(fn: () => Promise<T>, timeoutMs: number): Promise<T> {

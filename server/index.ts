@@ -38,6 +38,7 @@ app.use(authMiddleware);
 (async () => {
   const server = http.createServer(app);
   app.use(router);
+  app.use(errorHandler);
 
   app.use(errorHandler);
 
