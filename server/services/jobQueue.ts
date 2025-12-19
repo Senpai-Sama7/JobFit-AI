@@ -43,7 +43,7 @@ export class InMemoryJobQueue {
       } catch (error) {
         if (job.attempts < job.options.retries) {
           job.attempts += 1;
-          await new Promise((r) => setTimeout(r, job.options.backoffMs * job.attempts));
+          await new Promise((r) => setTimeout(r, job.options.backoffMs * 2 ** (job.attempts - 1)));
           this.queue.push(job);
         } else {
           job.reject(error);
