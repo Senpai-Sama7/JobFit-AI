@@ -12,9 +12,9 @@ describe('config loader', () => {
     expect(() => loadConfig({ NODE_ENV: 'production' } as any)).toThrow(/AUTH_JWT_SECRET/);
   });
 
-  it('allows overriding for tests', () => {
+  it('allows overriding for tests via getConfig', () => {
     resetConfigForTesting({ rateLimitMax: 10 });
-    const cfg = loadConfig({ NODE_ENV: 'test', RATE_LIMIT_MAX: '5' });
-    expect(cfg.rateLimitMax).toBe(5);
+    const cfg = getConfig();
+    expect(cfg.rateLimitMax).toBe(10);
   });
 });
