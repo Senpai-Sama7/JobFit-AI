@@ -13,9 +13,9 @@ const schema = z.object({
   AUTH_JWT_SECRET: z.string().optional(),
   API_SECRET_KEY: z.string().optional(),
   OPENAI_API_KEY: z.string().optional(),
-  RATE_LIMIT_WINDOW_MS: z.string().optional(),
-  RATE_LIMIT_MAX: z.string().optional(),
-  EXPORT_MAX_CHARS: z.string().optional(),
+  RATE_LIMIT_WINDOW_MS: z.coerce.number().positive().optional(),
+  RATE_LIMIT_MAX: z.coerce.number().positive().optional(),
+  EXPORT_MAX_CHARS: z.coerce.number().positive().optional(),
   NODE_ENV: z.string().optional(),
 });
 
