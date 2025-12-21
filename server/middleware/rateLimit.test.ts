@@ -1,7 +1,6 @@
 import { describe, beforeEach, expect, it, vi } from 'vitest';
 import type { Request, Response, NextFunction } from 'express';
 import { configureRateLimiter, rateLimiter, resetRateLimiter } from './rateLimit';
-import { resetConfigForTesting } from '../config';
 
 function createContext(path = '/api/test') {
   const req = { path, ip: '127.0.0.1', method: 'GET' } as Request;
@@ -16,7 +15,6 @@ function createContext(path = '/api/test') {
 
 describe('rateLimiter', () => {
   beforeEach(() => {
-    resetConfigForTesting();
     configureRateLimiter({ windowMs: 50, maxRequests: 2 });
   });
 

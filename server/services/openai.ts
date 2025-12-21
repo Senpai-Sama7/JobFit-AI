@@ -1,6 +1,5 @@
 import OpenAI from 'openai';
 import { z } from 'zod';
-import { getConfig } from '../config';
 
 let client: OpenAI | null = null;
 
@@ -29,7 +28,8 @@ export async function runStructuredChat<T>(params: {
       messages: [{ role: 'user', content: params.prompt }],
       temperature: 0.2,
       response_format: { type: 'json_object' },
-    }, { signal: controller.signal });
+      signal: controller.signal,
+    });
     const content = response.choices[0]?.message?.content;
     if (!content) throw new Error('Empty AI response');
     const parsed = JSON.parse(content);

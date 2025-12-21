@@ -1,9 +1,9 @@
 import { type Request, type Response, type NextFunction } from 'express';
-import { getConfig } from '../config';
 
 type Bucket = { count: number; resetAt: number };
 
-let { rateLimitWindowMs: windowMs, rateLimitMax: maxRequests } = getConfig();
+let windowMs = Number(process.env.RATE_LIMIT_WINDOW_MS ?? 60_000);
+let maxRequests = Number(process.env.RATE_LIMIT_MAX ?? 120);
 const buckets = new Map<string, Bucket>();
 
 export function rateLimiter(req: Request, res: Response, next: NextFunction) {
@@ -34,12 +34,5 @@ export function resetRateLimiter() {
 export function configureRateLimiter(options: { windowMs?: number; maxRequests?: number }) {
   if (options.windowMs) windowMs = options.windowMs;
   if (options.maxRequests) maxRequests = options.maxRequests;
-  resetRateLimiter();
-}
-
-export function refreshRateLimiterFromConfig() {
-  const { rateLimitWindowMs, rateLimitMax } = getConfig();
-  windowMs = rateLimitWindowMs;
-  maxRequests = rateLimitMax;
   resetRateLimiter();
 }

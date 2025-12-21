@@ -2,7 +2,6 @@ import { describe, beforeEach, afterEach, expect, it, vi } from 'vitest';
 import type { Request, Response, NextFunction } from 'express';
 import { authMiddleware } from './auth';
 import { signJwt } from '../services/jwt';
-import { clearConfigCache, resetConfigForTesting } from '../config';
 
 function createContext(path = '/api/test', headers: Record<string, string> = {}) {
   const req = { path, headers } as unknown as Request;
@@ -18,13 +17,13 @@ describe('authMiddleware', () => {
   const secret = 'test-secret';
 
   beforeEach(() => {
-    resetConfigForTesting({ authJwtSecret: secret, apiSecretKey: undefined });
-    process.env.NODE_ENV = 'test';
+    process.env.AUTH_JWT_SECRET = secret;
+    delete process.env.API_SECRET_KEY;
   });
 
   afterEach(() => {
-    resetConfigForTesting({ authJwtSecret: secret, apiSecretKey: undefined });
-    process.env.NODE_ENV = 'test';
+    delete process.env.AUTH_JWT_SECRET;
+    delete process.env.API_SECRET_KEY;
   });
 
   it('skips non-API routes', () => {
@@ -35,14 +34,10 @@ describe('authMiddleware', () => {
 
   it('rejects when secret is missing', () => {
     delete process.env.AUTH_JWT_SECRET;
-    delete process.env.AUTH_JWT_SECRET;
-    process.env.NODE_ENV = 'production';
-    clearConfigCache();
     const { req, res, next } = createContext('/api/test');
     authMiddleware(req, res, next);
     expect(res.status).toHaveBeenCalledWith(500);
     expect(next).not.toHaveBeenCalled();
-    process.env.NODE_ENV = 'test';
   });
 
   it('requires bearer tokens', () => {
@@ -61,7 +56,7 @@ describe('authMiddleware', () => {
   });
 
   it('requires API key when configured', () => {
-    resetConfigForTesting({ authJwtSecret: secret, apiSecretKey: 'expected' });
+    process.env.API_SECRET_KEY = 'expected';
     const token = signJwt({}, secret, { subject: '5' });
     const { req, res, next } = createContext('/api/test', { authorization: `Bearer ${token}`, 'x-api-key': 'wrong' });
     authMiddleware(req, res, next);

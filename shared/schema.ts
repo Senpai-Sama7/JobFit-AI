@@ -64,7 +64,7 @@ export const tailoredResumes = pgTable(
   (table) => ({
     uniqueTailoredByJob: uniqueIndex('tailored_resumes_resume_job_idx').on(
       table.originalResumeId,
-      table.jobDescription,
+      sql`md5(${table.jobDescription})`
     ),
   }),
 );

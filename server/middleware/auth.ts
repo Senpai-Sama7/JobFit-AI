@@ -1,53 +1,48 @@
-import { type NextFunction, type Request, type Response } from "express";
-import { getConfig } from "../config";
-import { verifyJwt } from "../services/jwt";
+import { NextFunction, Request, Response } from "express";
 
-declare global {
-  namespace Express {
-    interface Request {
-      userId?: number;
-    }
+declare module "express-serve-static-core" {
+  interface Request {
+    userId?: number;
   }
 }
+
+const apiKey = process.env.API_SECRET_KEY;
 
 export function authMiddleware(req: Request, res: Response, next: NextFunction) {
   if (!req.path.startsWith("/api")) return next();
 
-  let jwtSecret: string;
-  let apiSecretKey: string | undefined;
+  if (!apiKey) {
+    return res.status(500).json({ error: "API secret is not configured" });
+  }
+
+  const providedKey = req.headers["x-api-key"];
   try {
-    ({ authJwtSecret: jwtSecret, apiSecretKey } = getConfig());
-  } catch (error) {
-    return res.status(500).json({ error: (error as Error).message });
+    const keyIsValid =
+      typeof providedKey === 'string' &&
+      crypto.timingSafeEqual(Buffer.from(providedKey), Buffer.from(apiKey));
+  if (!apiKey) {
+    return res.status(500).json({ error: "API secret is not configured" });
   }
 
-  if (apiSecretKey) {
-    const providedKey = req.headers["x-api-key"];
-    if (providedKey !== apiSecretKey) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
+  const providedKey = req.headers["x-api-key"];
+  if (typeof providedKey !== 'string') {
+    return res.status(401).json({ error: "Unauthorized" });
   }
 
-  const authHeader = req.headers["authorization"];
-  if (!authHeader || Array.isArray(authHeader)) {
-    return res.status(401).json({ error: "Missing bearer token" });
+  const keyBuf = Buffer.from(apiKey);
+  const providedKeyBuf = Buffer.from(providedKey);
+
+  // Use a constant-time comparison to prevent timing attacks.
+  if (keyBuf.length !== providedKeyBuf.length || !crypto.timingSafeEqual(keyBuf, providedKeyBuf)) {
+    return res.status(401).json({ error: "Unauthorized" });
   }
 
-  const [scheme, token] = authHeader.split(" ");
-  if (scheme?.toLowerCase() !== "bearer" || !token) {
-    return res.status(401).json({ error: "Invalid authorization header" });
+  const userHeader = req.headers["x-user-id"];
+  const userId = typeof userHeader === "string" ? Number(userHeader) : Array.isArray(userHeader) ? Number(userHeader[0]) : NaN;
+  if (!userId || Number.isNaN(userId) || userId <= 0) {
+    return res.status(400).json({ error: "Missing or invalid user id" });
   }
 
-  try {
-    const claims = verifyJwt(token, jwtSecret);
-    const subject = claims.sub ?? claims.userId;
-    const userId = typeof subject === "string" ? Number(subject) : typeof subject === "number" ? subject : NaN;
-    if (!userId || Number.isNaN(userId) || userId <= 0) {
-      return res.status(401).json({ error: "Invalid token subject" });
-    }
-    req.userId = userId;
-    next();
-  } catch (error) {
-    res.status(401).json({ error: "Invalid or expired token" });
-  }
+  req.userId = userId;
+  next();
 }
