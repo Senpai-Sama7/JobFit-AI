@@ -5,11 +5,11 @@ let client: OpenAI | null = null;
 
 export function getOpenAIClient(): OpenAI {
   if (!client) {
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) {
+    const { openaiApiKey } = getConfig();
+    if (!openaiApiKey) {
       throw new Error('OPENAI_API_KEY is not set');
     }
-    client = new OpenAI({ apiKey });
+    client = new OpenAI({ apiKey: openaiApiKey });
   }
   return client;
 }

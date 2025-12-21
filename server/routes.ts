@@ -17,6 +17,8 @@ import { jobQueue } from './services/jobQueue';
 
 const router = Router();
 
+const { exportMaxChars } = getConfig();
+
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 },
@@ -152,7 +154,7 @@ router.get('/api/resumes/:id/recommendations', asyncHandler((req, res) =>
     await db
       .insert(roleRecommendations)
       .values(recommendations.map((r) => ({ ...r, resumeId })));
-    await db.update(resumes).set({ updatedAt: new Date() }).where(eq(resumes.id, resumeId));
+    await db.update(resumes).set({ updatedAt: new Date() }).where(and(eq(resumes.id, resumeId), eq(resumes.userId, req.userId!)));
     res.json(recommendations);
   })
 ));
