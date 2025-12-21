@@ -11,10 +11,17 @@ import {
 import { processResume } from './services/parser';
 import { tailorResume } from './services/tailoring';
 import { generateRoleRecommendations } from './services/recommender';
-import { getOpenAIClient } from './services/openai';
-import { eq, desc } from 'drizzle-orm';
+import { runStructuredChat } from './services/openai';
+import { eq, and } from 'drizzle-orm';
+import { jobQueue } from './services/jobQueue';
+import { recordActivity } from './services/audit';
+import { isSupportedResume } from './services/upload';
+import { sanitizeContent, enforceExportLimit, buildCsv } from './services/exporter';
+import { getConfig } from './config';
 
 const router = Router();
+
+const { exportMaxChars } = getConfig();
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -23,20 +30,24 @@ const upload = multer({
 
 const idSchema = z.coerce.number().int().positive();
 const tailorSchema = z.object({ jobDescription: z.string().min(1) });
-const exportSchema = z.object({ format: z.enum(['txt', 'csv']) });
+const exportSchema = z.object({ format: z.enum(['txt', 'csv']), tailoredResumeId: z.number().int().positive().optional() });
 
 async function withResume(
   req: Request,
   res: Response,
   handler: (resume: any, resumeId: number) => Promise<void>,
 ) {
+  if (!req.userId) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
   const idResult = idSchema.safeParse(req.params.id);
   if (!idResult.success) {
     res.status(400).json({ error: 'Invalid resume id' });
     return;
   }
   const resumeId = idResult.data;
-  const [resume] = await db.select().from(resumes).where(eq(resumes.id, resumeId));
+  const [resume] = await db.select().from(resumes).where(and(eq(resumes.id, resumeId), eq(resumes.userId, req.userId!)));
   if (!resume) {
     res.status(404).json({ error: 'Resume not found' });
     return;
@@ -44,22 +55,46 @@ async function withResume(
   await handler(resume, resumeId);
 }
 
-router.post('/api/resumes/upload', upload.single('resume'), async (req, res) => {
+const asyncHandler = (
+  handler: (req: Request, res: Response, next: (err?: any) => void) => Promise<unknown>,
+) =>
+  (req: Request, res: Response, next: (err?: any) => void) => {
+    handler(req, res, next).catch(next);
+  };
+
+router.get('/healthz', (_req, res) => res.json({ status: 'ok' }));
+
+router.get('/readyz', async (_req, res) => {
+  try {
+    await db.execute('select 1');
+    res.json({ status: 'ready' });
+  } catch (error) {
+    res.status(503).json({ status: 'degraded', error: (error as Error).message });
+  }
+});
+
+router.post('/api/resumes/upload', upload.single('resume'), asyncHandler(async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'No resume file provided.' });
+  }
+  if (!isSupportedResume(req.file)) {
+    return res.status(400).json({ error: 'Unsupported file type. Upload PDF or DOCX.' });
   }
   try {
     const simulatedS3Key = `resumes/${Date.now()}-${req.file.originalname}`;
     const [newResume] = await db
       .insert(resumes)
       .values({
+        userId: req.userId!,
         originalFileName: req.file.originalname,
         s3Key: simulatedS3Key,
         processingStatus: 'processing',
       })
       .returning();
 
-    processResume(newResume.id, req.file.buffer, req.file.originalname);
+    jobQueue
+      .add(() => processResume(newResume.id, req.file!.buffer, req.file!.originalname))
+      .catch((error) => console.error('Background processing failed', error));
 
     res.status(202).json({
       message: 'Resume upload accepted. Processing in background.',
@@ -69,47 +104,33 @@ router.post('/api/resumes/upload', upload.single('resume'), async (req, res) => 
     console.error('Upload Error:', error);
     res.status(500).json({ error: 'Failed to process resume upload.' });
   }
-});
+}));
 
-router.get('/api/resumes/:id/status', (req, res) =>
+router.get('/api/resumes/:id/status', asyncHandler((req, res) =>
   withResume(req, res, async (resume) => {
     res.json({ status: resume.processingStatus, atsScore: resume.atsScore });
   })
-);
+));
 
-router.post('/api/resumes/:id/optimize', (req, res) =>
+router.post('/api/resumes/:id/optimize', asyncHandler((req, res) =>
   withResume(req, res, async (resume, resumeId) => {
-    const originalScore = resume.atsScore || 0;
     const text = (resume.parsedData as any)?.text || '';
-
-    const openai = getOpenAIClient();
-    const prompt = `Improve the following resume. Respond in JSON with keys: "newScore" (number between 0 and 100) and "improvements" (array of strings as bullet points). Resume:\n${text}`;
-    const aiResponse = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
-      messages: [{ role: 'user', content: prompt }],
-      temperature: 0.2,
+    const schema = z.object({ newScore: z.number().int().min(0).max(100), improvements: z.array(z.string()).default([]) });
+    const result = await runStructuredChat({
+      prompt: `Optimize this resume. Return JSON: {"newScore": number 0-100, "improvements": ["bullet"]}. Resume text:\n${text}`,
+      schema,
     });
 
-    const reply = aiResponse.choices[0]?.message?.content || '';
-    let newScore = originalScore;
-    let improvements: string[] = [];
-    try {
-      const parsed = JSON.parse(reply);
-      newScore = Number(parsed.newScore) || originalScore;
-      if (Array.isArray(parsed.improvements)) {
-        improvements = parsed.improvements.map(String);
-      }
-    } catch (e) {
-      console.error('Failed to parse AI response for optimization:', e);
-    }
+    await db
+      .update(resumes)
+      .set({ atsScore: result.newScore, updatedAt: new Date() })
+      .where(and(eq(resumes.id, resumeId), eq(resumes.userId, req.userId!)));
 
-    await db.update(resumes).set({ atsScore: newScore }).where(eq(resumes.id, resumeId));
-
-    res.json({ oldScore: originalScore, newScore, improvements });
+    res.json({ oldScore: resume.atsScore || 0, newScore: result.newScore, improvements: result.improvements });
   })
-);
+));
 
-router.post('/api/resumes/:id/tailor', async (req, res) => {
+router.post('/api/resumes/:id/tailor', asyncHandler(async (req, res) => {
   const body = tailorSchema.safeParse(req.body);
   if (!body.success) return res.status(400).json({ error: 'Invalid request' });
   const { jobDescription } = body.data;
@@ -127,11 +148,12 @@ router.post('/api/resumes/:id/tailor', async (req, res) => {
       })
       .returning();
 
+    await db.update(resumes).set({ updatedAt: new Date() }).where(eq(resumes.id, resumeId));
     res.json(saved);
   });
-});
+}));
 
-router.get('/api/resumes/:id/recommendations', (req, res) =>
+router.get('/api/resumes/:id/recommendations', asyncHandler((req, res) =>
   withResume(req, res, async (resume, resumeId) => {
     const skillProfile = resume.skillProfile as SkillProfile | null;
     if (!skillProfile) {
@@ -139,177 +161,73 @@ router.get('/api/resumes/:id/recommendations', (req, res) =>
       return;
     }
     const recommendations = await generateRoleRecommendations(skillProfile);
+    await db.delete(roleRecommendations).where(eq(roleRecommendations.resumeId, resumeId));
     await db
       .insert(roleRecommendations)
       .values(recommendations.map((r) => ({ ...r, resumeId })));
+    await db.update(resumes).set({ updatedAt: new Date() }).where(eq(resumes.id, resumeId));
     res.json(recommendations);
   })
-);
+));
 
-router.post('/api/resumes/:id/export', async (req, res) => {
+router.post('/api/resumes/:id/export', asyncHandler(async (req, res) => {
   const body = exportSchema.safeParse(req.body);
   if (!body.success) return res.status(400).json({ error: 'Invalid request' });
-  const { format } = body.data;
+  const { format, tailoredResumeId } = body.data;
   await withResume(req, res, async (resume, resumeId) => {
-    let content = (resume.parsedData as any)?.text || '';
-    const [tailored] = await db
-      .select()
-      .from(tailoredResumes)
-      .where(eq(tailoredResumes.originalResumeId, resumeId))
-      .orderBy(desc(tailoredResumes.createdAt))
-      .limit(1);
-    if (tailored) {
-      content = (tailored.tailoredContent as string) || content;
+    let content = sanitizeContent((resume.parsedData as any)?.text || '');
+    let tailored;
+    if (tailoredResumeId) {
+      [tailored] = await db
+        .select()
+        .from(tailoredResumes)
+        .where(and(eq(tailoredResumes.id, tailoredResumeId), eq(tailoredResumes.originalResumeId, resumeId)))
+        .limit(1);
+      if (!tailored) {
+        res.status(404).json({ error: 'Tailored resume not found for this user' });
+        return;
+      }
+      const tailoredContent = typeof tailored.tailoredContent === 'string' ? tailored.tailoredContent : '';
+      content = sanitizeContent(tailoredContent || content);
+    }
+
+    try {
+      enforceExportLimit(content, exportMaxChars);
+    } catch (error) {
+      res.status(413).json({ error: (error as Error).message });
+      return;
     }
 
     if (format === 'txt') {
       res.setHeader('Content-Type', 'text/plain');
       res.setHeader('Content-Disposition', 'attachment; filename="resume.txt"');
+      await recordActivity({
+        userId: req.userId!,
+        type: 'export',
+        title: 'Resume TXT export',
+        metadata: { resumeId, tailoredResumeId: tailored?.id, format },
+      });
       res.send(content);
+      return;
     } else if (format === 'csv') {
-      const csv = `"resume"\n"${content.replace(/"/g, '""')}"`;
+      const csv = buildCsv([
+        ['resume'],
+        [content.replace(/\r?\n/g, '\\n')],
+      ]);
       res.setHeader('Content-Type', 'text/csv');
       res.setHeader('Content-Disposition', 'attachment; filename="resume.csv"');
+      await recordActivity({
+        userId: req.userId!,
+        type: 'export',
+        title: 'Resume CSV export',
+        metadata: { resumeId, tailoredResumeId: tailored?.id, format },
+      });
       res.send(csv);
+      return;
     } else {
       res.status(400).json({ error: 'Unsupported export format.' });
     }
   });
-});
-
-router.post('/api/resumes/:id/optimize', async (req, res) => {
-  const resumeId = parseInt(req.params.id, 10);
-  if (isNaN(resumeId)) {
-    return res.status(400).json({ error: 'Invalid resume id' });
-  }
-  try {
-    const [resume] = await db.select().from(resumes).where(eq(resumes.id, resumeId));
-    if (!resume) return res.status(404).json({ error: 'Resume not found' });
-
-    const originalScore = resume.atsScore || 0;
-    const text = (resume.parsedData as any)?.text || '';
-
-    const openai = getOpenAIClient();
-    const prompt = `Improve the following resume and provide an ATS score between 0 and 100 followed by improvements as bullet points. Resume:\n${text}`;
-    const aiResponse = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
-      messages: [{ role: 'user', content: prompt }],
-      temperature: 0.2,
-    });
-
-    const reply = aiResponse.choices[0]?.message?.content || '';
-    const lines = reply.split(/\r?\n/).map((l: string) => l.trim()).filter(Boolean);
-    let newScore = originalScore;
-    const improvements: string[] = [];
-    for (const line of lines) {
-      const scoreMatch = line.match(/(\d+)\s*\/\s*100/);
-      if (scoreMatch) {
-        newScore = parseInt(scoreMatch[1], 10);
-      } else if (line.startsWith('-')) {
-        improvements.push(line.replace(/^[-*]\s*/, ''));
-      }
-    }
-
-    await db.update(resumes).set({ atsScore: newScore }).where(eq(resumes.id, resumeId));
-
-    res.json({ oldScore: originalScore, newScore, improvements });
-  } catch (error) {
-    console.error('Optimize Error:', error);
-    res.status(500).json({ error: 'Failed to optimize resume.' });
-  }
-});
-
-router.post('/api/resumes/:id/tailor', async (req, res) => {
-  const resumeId = parseInt(req.params.id, 10);
-  const { jobDescription } = req.body as { jobDescription?: string };
-  if (isNaN(resumeId) || !jobDescription) {
-    return res.status(400).json({ error: 'Invalid request' });
-  }
-  try {
-    const [resume] = await db.select().from(resumes).where(eq(resumes.id, resumeId));
-    if (!resume) return res.status(404).json({ error: 'Resume not found' });
-
-    const text = (resume.parsedData as any)?.text || '';
-    const tailored = await tailorResume(text, jobDescription);
-    const [saved] = await db
-      .insert(tailoredResumes)
-      .values({
-        originalResumeId: resumeId,
-        jobDescription,
-        tailoredContent: tailored.tailoredContent,
-        improvements: tailored.improvements,
-        atsScore: tailored.atsScore,
-      })
-      .returning();
-
-    res.json(saved);
-  } catch (error) {
-    console.error('Tailor Error:', error);
-    res.status(500).json({ error: 'Failed to tailor resume.' });
-  }
-});
-
-router.get('/api/resumes/:id/recommendations', async (req, res) => {
-  const resumeId = parseInt(req.params.id, 10);
-  if (isNaN(resumeId)) {
-    return res.status(400).json({ error: 'Invalid resume id' });
-  }
-  try {
-    const [resume] = await db.select().from(resumes).where(eq(resumes.id, resumeId));
-    if (!resume) return res.status(404).json({ error: 'Resume not found' });
-
-    const skillProfile = resume.skillProfile as SkillProfile | null;
-    if (!skillProfile) {
-      return res.status(400).json({ error: 'Resume lacks skill profile' });
-    }
-    const recommendations = await generateRoleRecommendations(skillProfile);
-    await db
-      .insert(roleRecommendations)
-      .values(recommendations.map((r) => ({ ...r, resumeId })));
-    res.json(recommendations);
-  } catch (error) {
-    console.error('Recommendations Error:', error);
-    res.status(500).json({ error: 'Failed to generate recommendations.' });
-  }
-});
-
-router.post('/api/resumes/:id/export', async (req, res) => {
-  const resumeId = parseInt(req.params.id, 10);
-  const { format } = req.body as { format?: string };
-  if (isNaN(resumeId) || !format) {
-    return res.status(400).json({ error: 'Invalid request' });
-  }
-  try {
-    const [resume] = await db.select().from(resumes).where(eq(resumes.id, resumeId));
-    if (!resume) return res.status(404).json({ error: 'Resume not found' });
-
-    let content = (resume.parsedData as any)?.text || '';
-    const [tailored] = await db
-      .select()
-      .from(tailoredResumes)
-      .where(eq(tailoredResumes.originalResumeId, resumeId))
-      .orderBy(desc(tailoredResumes.createdAt))
-      .limit(1);
-    if (tailored) {
-      content = (tailored.tailoredContent as string) || content;
-    }
-
-    if (format === 'txt') {
-      res.setHeader('Content-Type', 'text/plain');
-      res.setHeader('Content-Disposition', 'attachment; filename="resume.txt"');
-      res.send(content);
-    } else if (format === 'csv') {
-      const csv = `"resume"\n"${content.replace(/"/g, '""')}"`;
-      res.setHeader('Content-Type', 'text/csv');
-      res.setHeader('Content-Disposition', 'attachment; filename="resume.csv"');
-      res.send(csv);
-    } else {
-      res.status(400).json({ error: 'Unsupported export format.' });
-    }
-  } catch (error) {
-    console.error('Export Error:', error);
-    res.status(500).json({ error: 'Failed to export resume.' });
-  }
-});
+}));
 
 export default router;
