@@ -65,15 +65,49 @@ export function extractKeywords(text: string): string[] {
     .slice(0, 20);
 }
 
+/**
+ * Escape special regex characters to prevent regex injection
+ */
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Escape HTML characters to prevent XSS
+ */
+function escapeHtml(str: string): string {
+  const htmlEscapes: Record<string, string> = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  };
+  return str.replace(/[&<>"']/g, (char) => htmlEscapes[char] || char);
+}
+
+/**
+ * Highlight text with specified keywords
+ * Safely escapes regex and HTML to prevent injection attacks
+ */
 export function highlightText(text: string, highlights: string[]): string {
-  if (!highlights.length) return text;
-  
-  let highlightedText = text;
+  if (!highlights.length || !text) return escapeHtml(text);
+
+  // First escape HTML in the original text
+  let highlightedText = escapeHtml(text);
+
   highlights.forEach(highlight => {
-    const regex = new RegExp(`(${highlight})`, 'gi');
-    highlightedText = highlightedText.replace(regex, '<mark class="bg-yellow-200 px-1 rounded">$1</mark>');
+    if (!highlight.trim()) return;
+
+    // Escape regex special characters to prevent ReDoS
+    const escaped = escapeRegex(escapeHtml(highlight));
+    const regex = new RegExp(`(${escaped})`, 'gi');
+    highlightedText = highlightedText.replace(
+      regex,
+      '<mark class="bg-yellow-200 px-1 rounded">$1</mark>'
+    );
   });
-  
+
   return highlightedText;
 }
 

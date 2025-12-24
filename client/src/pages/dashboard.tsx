@@ -1,12 +1,10 @@
-// @ts-nocheck
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useResumes, useOptimizeResume, useDeleteResume } from "@/hooks/use-resume";
 import { useSubscriptionLimits, useCreateSubscription } from "@/hooks/use-subscription";
 import SubscriptionModal from "@/components/subscription-modal";
-import ResumeCard from "@/components/resume-card";
 import Navigation from "@/components/navigation";
 import { FileUpload } from "@/components/file-upload";
 import RoleRecommendations from "@/components/role-recommendations";
@@ -19,26 +17,19 @@ import JobMarketTrends from "@/components/job-market-trends";
 import JobBoardIntegration from "@/components/job-board-integration";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { 
-  FileUp, 
-  Edit, 
-  Wand2, 
-  Search, 
-  Upload, 
-  UserCircle, 
-  Clock, 
-  Target,
+import {
+  FileUp,
+  Edit,
+  Wand2,
+  Search,
+  Upload,
+  UserCircle,
+  Clock,
   TrendingUp,
-  BarChart3,
   CheckCircle,
-  Cog,
   Download,
   Lightbulb,
-  Crown,
-  Lock
 } from "lucide-react";
 import type { Resume, Activity } from "@shared/schema";
 
@@ -50,59 +41,67 @@ interface DashboardStats {
   exports: number;
 }
 
+interface User {
+  id: number;
+  email: string;
+  username: string;
+  subscriptionStatus: "free" | "plus" | "pro";
+  subscriptionExpiry: string | null;
+  resumeGenerationsUsed: number;
+  resumeGenerationsLimit: number;
+  createdAt: string;
+}
+
+interface OptimizationData {
+  currentScore: number;
+  optimizedScore: number;
+  improvements: string[];
+}
+
 export default function Dashboard() {
   const [showManualForm, setShowManualForm] = useState(false);
   const [showTailoringModal, setShowTailoringModal] = useState(false);
   const [selectedResumeId, setSelectedResumeId] = useState<number | null>(null);
   const [showOptimizationModal, setShowOptimizationModal] = useState(false);
-  const [optimizationData, setOptimizationData] = useState<{
-    currentScore: number;
-    optimizedScore: number;
-    improvements: string[];
-  } | null>(null);
+  const [optimizationData, setOptimizationData] = useState<OptimizationData | null>(null);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
 
   const subscriptionLimits = useSubscriptionLimits();
   const createSubscription = useCreateSubscription();
-  
+
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   // Get user subscription status
-  const { data: user } = useQuery({
-    queryKey: ['/api/user'],
+  const { data: user } = useQuery<User>({
+    queryKey: ["/api/user"],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/user');
+      const response = await apiRequest("GET", "/api/user");
       return response.json();
     },
   });
 
   // Fetch dashboard data
-  const { data: stats } = useQuery({
-    queryKey: ['/api/dashboard/stats'],
+  const { data: stats } = useQuery<DashboardStats>({
+    queryKey: ["/api/dashboard/stats"],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/dashboard/stats');
+      const response = await apiRequest("GET", "/api/dashboard/stats");
       return response.json();
     },
     refetchInterval: 5000,
   });
-  
-  const { data: resumes = [] } = useResumes();
-  
-  const { data: activities } = useQuery({
-    queryKey: ['/api/activities'],
+
+  const { data: resumes = [], refetch: refetchResumes } = useResumes();
+
+  const { data: activities } = useQuery<Activity[]>({
+    queryKey: ["/api/activities"],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/activities');
+      const response = await apiRequest("GET", "/api/activities");
       return response.json();
     },
   });
 
-  const { data: currentResume } = useQuery({
-    queryKey: ["/api/resumes", selectedResumeId],
-    enabled: !!selectedResumeId,
-  });
-
-  const latestResume = resumes?.find(r => r.atsScore && r.parsedData) || resumes?.[0];
+  const latestResume = resumes?.find((r) => r.atsScore && r.parsedData) || resumes?.[0];
 
   const handleTailorResume = () => {
     if (latestResume) {
@@ -113,33 +112,33 @@ export default function Dashboard() {
 
   const handleOptimizeResume = async () => {
     if (!latestResume) return;
-    
+
     try {
       toast({
         title: "Optimizing Resume",
         description: "Analyzing and improving your resume for better ATS compliance...",
       });
 
-      const response = await apiRequest('POST', `/api/resumes/${latestResume.id}/optimize`, {});
+      const response = await apiRequest("POST", `/api/resumes/${latestResume.id}/optimize`, {});
       const data = await response.json();
-      
+
       // Show detailed optimization results
       setOptimizationData({
         currentScore: data.oldScore,
         optimizedScore: data.newScore,
         improvements: data.improvements || [
           "Added missing contact information formatting",
-          "Enhanced skills section with industry keywords", 
+          "Enhanced skills section with industry keywords",
           "Improved experience bullets with quantifiable metrics",
           "Optimized section headers for ATS compatibility",
-          "Added relevant technical skills and certifications"
-        ]
+          "Added relevant technical skills and certifications",
+        ],
       });
       setShowOptimizationModal(true);
 
       // Refresh data to show new score
-      queryClient.invalidateQueries({ queryKey: ['/api/resumes'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/dashboard/stats'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/resumes"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
     } catch (error) {
       toast({
         title: "Optimization Failed",
@@ -191,18 +190,18 @@ AWS Certified Solutions Architect - Associate | 2023
 Certified Scrum Master (CSM) | 2021`;
 
     try {
-      const blob = new Blob([demoResumeContent], { type: 'text/plain' });
-      const file = new File([blob], 'demo_resume.txt', { type: 'text/plain' });
+      const blob = new Blob([demoResumeContent], { type: "text/plain" });
+      const file = new File([blob], "demo_resume.txt", { type: "text/plain" });
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append("resume", file);
 
       toast({
         title: "Demo Upload Started",
         description: "Processing sample resume to show AI analysis...",
       });
 
-      await apiRequest('POST', '/api/resumes/upload', formData);
-      
+      await apiRequest("POST", "/api/resumes/upload", formData);
+
       setTimeout(() => {
         toast({
           title: "AI Analysis in Progress",
@@ -215,12 +214,11 @@ Certified Scrum Master (CSM) | 2021`;
           title: "Analysis Complete!",
           description: "Demo resume processed. Check your dashboard for results.",
         });
-        
-        queryClient.invalidateQueries({ queryKey: ['/api/resumes'] });
-        queryClient.invalidateQueries({ queryKey: ['/api/dashboard/stats'] });
-        queryClient.invalidateQueries({ queryKey: ['/api/activities'] });
-      }, 3500);
 
+        queryClient.invalidateQueries({ queryKey: ["/api/resumes"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/activities"] });
+      }, 3500);
     } catch (error) {
       toast({
         title: "Demo Failed",
@@ -230,30 +228,42 @@ Certified Scrum Master (CSM) | 2021`;
     }
   };
 
-  const getActivityIcon = (type: string) => {
+  const getActivityIcon = (type: string): ReactNode => {
     switch (type) {
-      case 'upload':
-      case 'created':
+      case "upload":
+      case "created":
         return <CheckCircle className="h-4 w-4 text-success-600" />;
-      case 'tailored':
+      case "tailored":
         return <Download className="h-4 w-4 text-primary-600" />;
-      case 'exported':
+      case "exported":
         return <Download className="h-4 w-4 text-primary-600" />;
-      case 'parsed':
+      case "parsed":
+      case "optimized":
         return <Lightbulb className="h-4 w-4 text-orange-600" />;
       default:
         return <Clock className="h-4 w-4 text-grey-500" />;
     }
   };
 
-  const formatTimeAgo = (date: Date) => {
+  const formatTimeAgo = (date: Date | string): string => {
     const now = new Date();
     const diffInSeconds = Math.floor((now.getTime() - new Date(date).getTime()) / 1000);
-    
-    if (diffInSeconds < 60) return 'Just now';
+
+    if (diffInSeconds < 60) return "Just now";
     if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
     if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
     return `${Math.floor(diffInSeconds / 86400)} days ago`;
+  };
+
+  const handleResumeBuilderComplete = (resumeId: number) => {
+    setShowManualForm(false);
+    refetchResumes();
+    queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/activities"] });
+    toast({
+      title: "Resume Created",
+      description: "Your resume has been successfully created and is ready for optimization!",
+    });
   };
 
   return (
@@ -263,7 +273,10 @@ Certified Scrum Master (CSM) | 2021`;
       {/* App Description Banner */}
       <div className="w-full bg-blue-50 border-b border-blue-200 py-4 px-4 flex items-center justify-center">
         <span className="text-lg md:text-xl font-semibold text-blue-900 text-center max-w-3xl">
-          JobFit AI is a comprehensive web application designed to help job seekers optimize their resumes using AI-powered analysis, role recommendations, and tailored resume generation. The platform leverages advanced AI and real-time job market data to maximize job application success rates.
+          JobFit AI is a comprehensive web application designed to help job seekers optimize their
+          resumes using AI-powered analysis, role recommendations, and tailored resume generation.
+          The platform leverages advanced AI and real-time job market data to maximize job
+          application success rates.
         </span>
       </div>
 
@@ -277,18 +290,22 @@ Certified Scrum Master (CSM) | 2021`;
               <div className="relative z-10">
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between space-y-4 md:space-y-0">
                   <div className="flex-1">
-                    <h2 className="text-3xl font-bold mb-3" style={{color: '#ffffff'}}>🚀 Unlock Your Career Potential</h2>
-                    <p className="mb-6 text-lg" style={{color: '#f0f8ff'}}>Choose the perfect plan for your job search journey</p>
+                    <h2 className="text-3xl font-bold mb-3 text-white">
+                      Unlock Your Career Potential
+                    </h2>
+                    <p className="mb-6 text-lg text-blue-100">
+                      Choose the perfect plan for your job search journey
+                    </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                       <div className="flex items-center space-x-3 bg-white/20 rounded-lg p-3">
                         <div className="w-3 h-3 bg-white rounded-full"></div>
-                        <span className="font-medium" style={{color: '#ffffff'}}>Plus: $0.99/month</span>
-                        <span style={{color: '#e6f3ff'}}>• 10 resume generations</span>
+                        <span className="font-medium text-white">Plus: $0.99/month</span>
+                        <span className="text-blue-100">10 resume generations</span>
                       </div>
                       <div className="flex items-center space-x-3 bg-white/20 rounded-lg p-3">
                         <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
-                        <span className="font-medium" style={{color: '#ffffff'}}>Pro: $4.99/month</span>
-                        <span style={{color: '#e6f3ff'}}>• 30 resumes + AI interviews</span>
+                        <span className="font-medium text-white">Pro: $4.99/month</span>
+                        <span className="text-blue-100">30 resumes + AI interviews</span>
                       </div>
                     </div>
                   </div>
@@ -296,7 +313,6 @@ Certified Scrum Master (CSM) | 2021`;
                     <Button
                       onClick={() => setShowSubscriptionModal(true)}
                       className="bg-white text-blue-600 hover:bg-blue-50 font-bold px-8 py-3 text-lg shadow-lg"
-                      style={{color: '#1e40af'}}
                     >
                       View All Plans
                     </Button>
@@ -315,10 +331,10 @@ Certified Scrum Master (CSM) | 2021`;
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card 
+          <Card
             className="glass-card border-0 cursor-pointer group hover:shadow-glass transition-all duration-300 shimmer"
             onClick={() => {
-              const input = document.querySelector('[data-upload-trigger]') as HTMLInputElement;
+              const input = document.querySelector("[data-upload-trigger]") as HTMLInputElement;
               if (input) input.click();
             }}
           >
@@ -335,7 +351,7 @@ Certified Scrum Master (CSM) | 2021`;
             </CardContent>
           </Card>
 
-          <Card 
+          <Card
             className="glass-card border-0 cursor-pointer group hover:shadow-glass transition-all duration-300 shimmer"
             onClick={() => setShowManualForm(true)}
           >
@@ -352,11 +368,11 @@ Certified Scrum Master (CSM) | 2021`;
             </CardContent>
           </Card>
 
-          <Card 
+          <Card
             className={`glass-card border-0 cursor-pointer group hover:shadow-glass transition-all duration-300 shimmer ${
-              !latestResume ? 'opacity-50 cursor-not-allowed' : ''
+              !latestResume ? "opacity-50 cursor-not-allowed" : ""
             }`}
-            onClick={handleTailorResume}
+            onClick={latestResume ? handleTailorResume : undefined}
           >
             <CardContent className="p-6">
               <div className="flex items-center space-x-4">
@@ -366,18 +382,21 @@ Certified Scrum Master (CSM) | 2021`;
                 <div>
                   <h3 className="font-semibold text-grey-900">Tailor Resume</h3>
                   <p className="text-sm text-grey-600">
-                    {latestResume ? 'For specific job' : 'Upload resume first'}
+                    {latestResume ? "For specific job" : "Upload resume first"}
                   </p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card 
+          <Card
             className={`glass-card border-0 cursor-pointer group hover:shadow-glass transition-all duration-300 shimmer ${
-              !latestResume ? 'opacity-50 cursor-not-allowed' : ''
+              !latestResume ? "opacity-50 cursor-not-allowed" : ""
             }`}
-            onClick={() => latestResume && document.querySelector('[data-recommendations-scroll]')?.scrollIntoView({ behavior: 'smooth' })}
+            onClick={() =>
+              latestResume &&
+              document.querySelector("[data-recommendations-scroll]")?.scrollIntoView({ behavior: "smooth" })
+            }
           >
             <CardContent className="p-6">
               <div className="flex items-center space-x-4">
@@ -387,7 +406,7 @@ Certified Scrum Master (CSM) | 2021`;
                 <div>
                   <h3 className="font-semibold text-grey-900">Find Roles</h3>
                   <p className="text-sm text-grey-600">
-                    {latestResume ? 'AI recommendations' : 'Upload resume first'}
+                    {latestResume ? "AI recommendations" : "Upload resume first"}
                   </p>
                 </div>
               </div>
@@ -396,19 +415,19 @@ Certified Scrum Master (CSM) | 2021`;
         </div>
 
         {/* Subscription-based Features */}
-        {user?.subscriptionStatus === 'free' && (
+        {user?.subscriptionStatus === "free" && (
           <div className="mb-8">
             <AchievementSystem />
           </div>
         )}
 
-        {user?.subscriptionStatus === 'plus' && (
+        {user?.subscriptionStatus === "plus" && (
           <div className="mb-8">
             <JobMarketTrends resumeSection="skills" />
           </div>
         )}
 
-        {user?.subscriptionStatus === 'pro' && (
+        {user?.subscriptionStatus === "pro" && (
           <div className="mb-8">
             <JobBoardIntegration />
           </div>
@@ -424,25 +443,21 @@ Certified Scrum Master (CSM) | 2021`;
                   <Upload className="text-primary-600 mr-3 h-5 w-5" />
                   Upload Your Resume
                 </h2>
-                
+
                 <FileUpload />
-                
+
                 <div className="mt-6 flex justify-center">
                   <span className="text-grey-500 text-sm">or</span>
                 </div>
 
                 <div className="mt-6 text-center space-y-3">
-                  <Button 
+                  <Button
                     onClick={() => setShowManualForm(true)}
                     className="bg-primary-600 text-white hover:bg-primary-700 w-full"
                   >
                     Fill Out Manually
                   </Button>
-                  <Button 
-                    onClick={handleDemoUpload}
-                    variant="outline"
-                    className="w-full"
-                  >
+                  <Button onClick={handleDemoUpload} variant="outline" className="w-full">
                     Try Demo Resume
                   </Button>
                 </div>
@@ -457,7 +472,7 @@ Certified Scrum Master (CSM) | 2021`;
                     <UserCircle className="text-primary-600 mr-3 h-5 w-5" />
                     Your Profile Status
                   </h2>
-                  
+
                   <div className="space-y-4">
                     <div className="flex items-center justify-between p-4 bg-success-50 rounded-lg">
                       <div className="flex items-center space-x-3">
@@ -483,8 +498,8 @@ Certified Scrum Master (CSM) | 2021`;
                           <CheckCircle className="text-success-600 h-5 w-5" />
                           <span className="font-medium text-grey-700">ATS Compliance Check</span>
                         </div>
-                        <Button 
-                          size="sm" 
+                        <Button
+                          size="sm"
                           variant="outline"
                           onClick={handleOptimizeResume}
                           className="text-xs"
@@ -493,8 +508,8 @@ Certified Scrum Master (CSM) | 2021`;
                         </Button>
                       </div>
                       <div className="w-full bg-grey-200 rounded-full h-2">
-                        <div 
-                          className="bg-success-500 h-2 rounded-full transition-all duration-1000" 
+                        <div
+                          className="bg-success-500 h-2 rounded-full transition-all duration-1000"
                           style={{ width: `${latestResume.atsScore || 0}%` }}
                         />
                       </div>
@@ -514,11 +529,14 @@ Certified Scrum Master (CSM) | 2021`;
                   <Clock className="text-primary-600 mr-3 h-5 w-5" />
                   Recent Activity
                 </h2>
-                
+
                 <div className="space-y-4">
                   {activities?.length ? (
                     activities.map((activity) => (
-                      <div key={activity.id} className="flex items-start space-x-4 p-4 hover:bg-grey-50 rounded-lg transition-colors">
+                      <div
+                        key={activity.id}
+                        className="flex items-start space-x-4 p-4 hover:bg-grey-50 rounded-lg transition-colors"
+                      >
                         <div className="w-8 h-8 bg-success-100 rounded-full flex items-center justify-center flex-shrink-0">
                           {getActivityIcon(activity.type)}
                         </div>
@@ -558,7 +576,7 @@ Certified Scrum Master (CSM) | 2021`;
                   <TrendingUp className="text-primary-600 mr-3 h-5 w-5" />
                   Quick Stats
                 </h2>
-                
+
                 <div className="space-y-6">
                   <div className="text-center">
                     <div className="text-3xl font-bold text-primary-600 mb-1">
@@ -594,15 +612,8 @@ Certified Scrum Master (CSM) | 2021`;
             <DialogHeader className="mb-6">
               <DialogTitle className="text-2xl">Build Your Resume</DialogTitle>
             </DialogHeader>
-            <ResumeBuilder 
-              onComplete={(resumeId) => {
-                setShowManualForm(false);
-                refetchResumes();
-                toast({
-                  title: "Resume Created",
-                  description: "Your resume has been successfully created and is ready for optimization!",
-                });
-              }}
+            <ResumeBuilder
+              onComplete={handleResumeBuilderComplete}
               onCancel={() => setShowManualForm(false)}
             />
           </div>
@@ -612,7 +623,7 @@ Certified Scrum Master (CSM) | 2021`;
       {/* Tailoring Workspace Modal */}
       <Dialog open={showTailoringModal} onOpenChange={setShowTailoringModal}>
         <DialogContent className="max-w-[95vw] max-h-[95vh] overflow-hidden p-0 glass-card border-0">
-          <TailoringWorkspace 
+          <TailoringWorkspace
             resumeId={selectedResumeId}
             onClose={() => setShowTailoringModal(false)}
           />

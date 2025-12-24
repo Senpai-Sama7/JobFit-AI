@@ -1,15 +1,14 @@
-// @ts-nocheck
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { 
-  MoreHorizontal, 
-  Eye, 
-  Download, 
-  Trash2, 
-  Wand2, 
+import {
+  MoreHorizontal,
+  Eye,
+  Download,
+  Trash2,
+  Wand2,
   FileText,
   Calendar,
   Target
@@ -27,6 +26,23 @@ import { formatTimeAgo, getScoreColor } from "@/lib/utils";
 import ExportModal from "./export-modal";
 import type { Resume } from "@shared/schema";
 
+/**
+ * Extended Resume type with additional fields that may come from the API
+ */
+interface ExtendedResume extends Omit<Resume, 'createdAt'> {
+  uploadedAt?: Date;
+  createdAt: Date;
+}
+
+/**
+ * Optimization result returned from the optimize mutation
+ */
+interface OptimizationResult {
+  oldScore: number;
+  newScore: number;
+  improvements: string[];
+}
+
 interface ResumeCardProps {
   resume: Resume;
   onTailor: (resumeId: number) => void;
@@ -35,13 +51,26 @@ interface ResumeCardProps {
 
 export default function ResumeCard({ resume, onTailor, onOptimize }: ResumeCardProps) {
   const [showExportModal, setShowExportModal] = useState(false);
-  const { toast } = useToast();
   const deleteResume = useDeleteResume();
   const optimizeMutation = useOptimizeResume();
 
   const handleOptimize = async () => {
     try {
       const result = await optimizeMutation.mutateAsync(resume.id);
+
+      // Runtime validation to ensure the result matches the expected shape
+      if (
+        typeof result !== 'object' ||
+        result === null ||
+        typeof result.oldScore !== 'number' ||
+        typeof result.newScore !== 'number' ||
+        !Array.isArray(result.improvements)
+      ) {
+        // Handle error appropriately, e.g., show a toast message and return
+        console.error("Invalid optimization result shape:", result);
+        // Potentially show an error toast to the user
+        return;
+      }
       onOptimize({
         currentScore: result.oldScore,
         optimizedScore: result.newScore,
@@ -86,7 +115,7 @@ export default function ResumeCard({ resume, onTailor, onOptimize }: ResumeCardP
               <div className="flex items-center space-x-4 text-sm text-grey-600">
                 <div className="flex items-center space-x-1">
                   <Calendar className="h-3 w-3" />
-                  <span>{formatTimeAgo(resume.uploadedAt)}</span>
+                  <span>{formatTimeAgo(resume.createdAt)}</span>
                 </div>
                 {resume.atsScore && (
                   <div className="flex items-center space-x-1">
@@ -182,7 +211,7 @@ export default function ResumeCard({ resume, onTailor, onOptimize }: ResumeCardP
         isOpen={showExportModal}
         onClose={() => setShowExportModal(false)}
         resumeId={resume.id}
-        resumeName={resume.originalFileName}
+        resumeName={resume.originalFileName || 'resume'}
       />
     </>
   );

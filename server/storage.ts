@@ -1,22 +1,45 @@
-import { 
-  users, resumes, roleRecommendations, tailoredResumes, activities,
-  type User, type InsertUser, type Resume, type InsertResume,
-  type RoleRecommendation, type InsertRoleRecommendation,
-  type TailoredResume, type InsertTailoredResume,
-  type Activity, type InsertActivity,
-  type ParsedResume, type SkillProfile
-} from "@shared/schema";
+/**
+ * Storage abstraction layer for JobFit-AI
+ *
+ * This module provides an interface for data persistence operations.
+ * Implements a database-backed storage using Drizzle ORM.
+ */
 
+import { db } from './db';
+import { eq, desc } from 'drizzle-orm';
+import {
+  users,
+  resumes,
+  roleRecommendations,
+  tailoredResumes,
+  activities,
+  type User,
+  type InsertUser,
+  type Resume,
+  type InsertResume,
+  type RoleRecommendation,
+  type InsertRoleRecommendation,
+  type TailoredResume,
+  type InsertTailoredResume,
+  type Activity,
+  type InsertActivity,
+  type SubscriptionStatus,
+} from '../shared/schema';
+
+/**
+ * Storage interface defining all data operations
+ */
 export interface IStorage {
   // Users
   getUser(id: number): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUserSubscription(id: number, subscriptionData: {
-    subscriptionStatus: "free" | "premium";
+    subscriptionStatus: SubscriptionStatus;
     subscriptionExpiry?: Date;
     stripeCustomerId?: string;
     stripeSubscriptionId?: string;
+    resumeGenerationsLimit?: number;
   }): Promise<User | undefined>;
 
   // Resumes
@@ -42,209 +65,158 @@ export interface IStorage {
   createActivity(activity: InsertActivity): Promise<Activity>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private resumes: Map<number, Resume>;
-  private roleRecommendations: Map<number, RoleRecommendation>;
-  private tailoredResumes: Map<number, TailoredResume>;
-  private activities: Map<number, Activity>;
-  private currentUserId: number;
-  private currentResumeId: number;
-  private currentRoleRecId: number;
-  private currentTailoredId: number;
-  private currentActivityId: number;
-
-  constructor() {
-    this.users = new Map();
-    this.resumes = new Map();
-    this.roleRecommendations = new Map();
-    this.tailoredResumes = new Map();
-    this.activities = new Map();
-    this.currentUserId = 1;
-    this.currentResumeId = 1;
-    this.currentRoleRecId = 1;
-    this.currentTailoredId = 1;
-    this.currentActivityId = 1;
-
-    // Create default user for demo
-    this.createUser({ 
-      username: "demo", 
-      password: "demo123",
-      email: "demo@jobfit.ai"
-    });
-  }
-
-
-
+/**
+ * Database-backed storage implementation using Drizzle ORM
+ */
+export class DatabaseStorage implements IStorage {
   // Users
   async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
-  }
-
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(user => user.username === username);
-  }
-
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentUserId++;
-    const user: User = { 
-      ...insertUser, 
-      id,
-      email: insertUser.email || `${insertUser.username}@demo.com`,
-      subscriptionStatus: "free",
-      resumeGenerationsUsed: 0,
-      resumeGenerationsLimit: 1,
-      subscriptionExpiry: null,
-      stripeCustomerId: null,
-      stripeSubscriptionId: null,
-    };
-    this.users.set(id, user);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
   }
 
-  async updateUserSubscription(id: number, subscriptionData: {
-    subscriptionStatus: "free" | "plus" | "pro";
-    subscriptionExpiry?: Date;
-    stripeCustomerId?: string;
-    stripeSubscriptionId?: string;
-    resumeGenerationsLimit?: number;
-  }): Promise<User | undefined> {
-    const user = this.users.get(id);
-    if (!user) return undefined;
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
 
-    const subscriptionLimits = {
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db.insert(users).values(insertUser).returning();
+    return user;
+  }
+
+  async updateUserSubscription(
+    id: number,
+    subscriptionData: {
+      subscriptionStatus: SubscriptionStatus;
+      subscriptionExpiry?: Date;
+      stripeCustomerId?: string;
+      stripeSubscriptionId?: string;
+      resumeGenerationsLimit?: number;
+    }
+  ): Promise<User | undefined> {
+    const subscriptionLimits: Record<SubscriptionStatus, number> = {
       free: 1,
       plus: 10,
-      pro: 30
+      pro: 30,
     };
 
-    const updatedUser: User = {
-      ...user,
-      ...subscriptionData,
-      resumeGenerationsLimit: subscriptionData.resumeGenerationsLimit || 
-        subscriptionLimits[subscriptionData.subscriptionStatus as keyof typeof subscriptionLimits] || 
-        user.resumeGenerationsLimit,
-    };
-    this.users.set(id, updatedUser);
-    return updatedUser;
+    const [updated] = await db
+      .update(users)
+      .set({
+        subscriptionStatus: subscriptionData.subscriptionStatus,
+        subscriptionExpiry: subscriptionData.subscriptionExpiry,
+        stripeCustomerId: subscriptionData.stripeCustomerId,
+        stripeSubscriptionId: subscriptionData.stripeSubscriptionId,
+        resumeGenerationsLimit:
+          subscriptionData.resumeGenerationsLimit ||
+          subscriptionLimits[subscriptionData.subscriptionStatus],
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, id))
+      .returning();
+
+    return updated;
   }
 
   // Resumes
   async getResume(id: number): Promise<Resume | undefined> {
-    return this.resumes.get(id);
+    const [resume] = await db.select().from(resumes).where(eq(resumes.id, id));
+    return resume;
   }
 
   async getResumesByUserId(userId: number): Promise<Resume[]> {
-    return Array.from(this.resumes.values()).filter(resume => resume.userId === userId);
+    return db
+      .select()
+      .from(resumes)
+      .where(eq(resumes.userId, userId))
+      .orderBy(desc(resumes.createdAt));
   }
 
   async createResume(insertResume: InsertResume): Promise<Resume> {
-    const id = this.currentResumeId++;
-    const now = new Date();
-    const resume: Resume = {
-      ...insertResume,
-      id,
-      originalFileName: insertResume.originalFileName || null,
-      parsedData: null,
-      skillProfile: null,
-      atsScore: null,
-      processingStatus: "pending",
-      createdAt: now,
-      updatedAt: now,
-    };
-    this.resumes.set(id, resume);
+    const [resume] = await db.insert(resumes).values(insertResume).returning();
     return resume;
   }
 
   async updateResume(id: number, updates: Partial<Resume>): Promise<Resume | undefined> {
-    const resume = this.resumes.get(id);
-    if (!resume) return undefined;
-
-    const updatedResume: Resume = {
-      ...resume,
-      ...updates,
-      updatedAt: new Date(),
-    };
-    this.resumes.set(id, updatedResume);
-    return updatedResume;
+    const [updated] = await db
+      .update(resumes)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(resumes.id, id))
+      .returning();
+    return updated;
   }
 
   async deleteResume(id: number): Promise<boolean> {
-    return this.resumes.delete(id);
+    await db.delete(resumes).where(eq(resumes.id, id));
+    return true;
   }
 
   // Role Recommendations
   async getRoleRecommendationsByResumeId(resumeId: number): Promise<RoleRecommendation[]> {
-    return Array.from(this.roleRecommendations.values())
-      .filter(rec => rec.resumeId === resumeId)
-      .sort((a, b) => b.fitScore - a.fitScore);
+    return db
+      .select()
+      .from(roleRecommendations)
+      .where(eq(roleRecommendations.resumeId, resumeId));
   }
 
   async createRoleRecommendation(recommendation: InsertRoleRecommendation): Promise<RoleRecommendation> {
-    const id = this.currentRoleRecId++;
-    const roleRec: RoleRecommendation = { ...recommendation, id };
-    this.roleRecommendations.set(id, roleRec);
-    return roleRec;
+    const [created] = await db
+      .insert(roleRecommendations)
+      .values(recommendation)
+      .returning();
+    return created;
   }
 
   async deleteRoleRecommendationsByResumeId(resumeId: number): Promise<void> {
-    const toDelete = Array.from(this.roleRecommendations.entries())
-      .filter(([_, rec]) => rec.resumeId === resumeId)
-      .map(([id, _]) => id);
-    
-    toDelete.forEach(id => this.roleRecommendations.delete(id));
+    await db.delete(roleRecommendations).where(eq(roleRecommendations.resumeId, resumeId));
   }
 
   // Tailored Resumes
   async getTailoredResume(id: number): Promise<TailoredResume | undefined> {
-    return this.tailoredResumes.get(id);
+    const [tailored] = await db
+      .select()
+      .from(tailoredResumes)
+      .where(eq(tailoredResumes.id, id));
+    return tailored;
   }
 
   async getTailoredResumesByResumeId(resumeId: number): Promise<TailoredResume[]> {
-    return Array.from(this.tailoredResumes.values())
-      .filter(tailored => tailored.originalResumeId === resumeId)
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    return db
+      .select()
+      .from(tailoredResumes)
+      .where(eq(tailoredResumes.originalResumeId, resumeId))
+      .orderBy(desc(tailoredResumes.createdAt));
   }
 
-  async createTailoredResume(insertTailoredResume: InsertTailoredResume): Promise<TailoredResume> {
-    const id = this.currentTailoredId++;
-    const tailoredResume: TailoredResume = {
-      id,
-      originalResumeId: insertTailoredResume.originalResumeId,
-      jobDescription: insertTailoredResume.jobDescription,
-      tailoredContent: insertTailoredResume.tailoredContent as ParsedResume | null,
-      improvements: insertTailoredResume.improvements as any,
-      atsScore: insertTailoredResume.atsScore ?? null,
-      createdAt: new Date(),
-    };
-    this.tailoredResumes.set(id, tailoredResume);
-    return tailoredResume;
+  async createTailoredResume(insertTailored: InsertTailoredResume): Promise<TailoredResume> {
+    const [created] = await db
+      .insert(tailoredResumes)
+      .values(insertTailored)
+      .returning();
+    return created;
   }
 
   async deleteTailoredResume(id: number): Promise<boolean> {
-    return this.tailoredResumes.delete(id);
+    await db.delete(tailoredResumes).where(eq(tailoredResumes.id, id));
+    return true;
   }
 
   // Activities
-  async getActivitiesByUserId(userId: number, limit: number = 10): Promise<Activity[]> {
-    return Array.from(this.activities.values())
-      .filter(activity => activity.userId === userId)
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
-      .slice(0, limit);
+  async getActivitiesByUserId(userId: number, limit = 20): Promise<Activity[]> {
+    return db
+      .select()
+      .from(activities)
+      .where(eq(activities.userId, userId))
+      .orderBy(desc(activities.createdAt))
+      .limit(limit);
   }
 
   async createActivity(insertActivity: InsertActivity): Promise<Activity> {
-    const id = this.currentActivityId++;
-    const activity: Activity = {
-      ...insertActivity,
-      id,
-      description: insertActivity.description || null,
-      metadata: insertActivity.metadata || null,
-      createdAt: new Date(),
-    };
-    this.activities.set(id, activity);
-    return activity;
+    const [created] = await db.insert(activities).values(insertActivity).returning();
+    return created;
   }
 }
 
-export const storage = new MemStorage();
+// Export singleton instance
+export const storage = new DatabaseStorage();

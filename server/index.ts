@@ -3,13 +3,15 @@ import express from "express";
 import http from "http";
 import router from "./routes";
 import { errorHandler } from "./error";
-import { authMiddleware } from "./middleware/auth";
-import { setupVite, serveStatic, log } from "./vite";
+import { setupAuth } from "./auth";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(securityHeaders);
+
+// Setup authentication (session + passport)
+setupAuth(app);
 
 app.use((req, res, next) => {
   const start = Date.now();
