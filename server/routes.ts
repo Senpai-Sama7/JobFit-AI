@@ -66,11 +66,12 @@ const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
   fileFilter: (_req, file, cb) => {
-    if (ALLOWED_MIME_TYPES.includes(file.mimetype) ||
-        file.originalname.match(/\.(pdf|docx|txt|md|rtf|odt)$/i)) {
+    const hasAllowedMime = ALLOWED_MIME_TYPES.includes(file.mimetype);
+    const hasAllowedExt = /\.(pdf|docx|txt|md|rtf|odt)$/i.test(file.originalname);
+    if (hasAllowedMime && hasAllowedExt) {
       cb(null, true);
     } else {
-      cb(new Error('Invalid file type. Allowed: PDF, DOCX, TXT, MD, RTF, ODT'));
+      cb(new multer.MulterError('LIMIT_UNEXPECTED_FILE', file.fieldname));
     }
   },
 });
@@ -127,21 +128,19 @@ const loginSchema = z.object({
 
 // Helper: Get current user from session or demo mode
 async function getCurrentUser(req: Request): Promise<User> {
-  // If user is authenticated via session, use that
   if (req.user) {
     return req.user as User;
   }
-
+  if (process.env.NODE_ENV === 'production') {
+    throw new AuthenticationError();
+  }
   // Fallback to demo mode for development/testing
   const [existingUser] = await db.select().from(users).limit(1);
   if (existingUser) return existingUser;
-
-  // Create demo user if none exists
   const [newUser] = await db.insert(users).values({
     email: 'demo@jobfit.ai',
     hashedPassword: hashPassword('demo-password'),
   }).returning();
-
   return newUser;
 }
 
@@ -157,7 +156,7 @@ async function withResume(
     return;
   }
   const resumeId = idResult.data;
-  const [resume] = await db.select().from(resumes).where(eq(resumes.id, resumeId));
+  const [resume] = await db.select().from(resumes).where(and(eq(resumes.id, resumeId), eq(resumes.userId, req.userId!)));
   if (!resume) {
     res.status(404).json({ error: 'Resume not found' });
     return;
@@ -218,7 +217,7 @@ router.post('/api/auth/register', rateLimiters.auth, async (req: Request, res: R
     logger.error('Registration failed', error);
     res.status(500).json({ error: 'Registration failed' });
   }
-});
+}));
 
 // POST /api/auth/login - Login user (with auth rate limiting for brute force protection)
 router.post('/api/auth/login', rateLimiters.auth, (req: Request, res: Response, next: NextFunction) => {
@@ -271,7 +270,7 @@ router.post('/api/auth/logout', (req: Request, res: Response) => {
       res.json({ message: 'Logged out successfully' });
     });
   });
-});
+}));
 
 // GET /api/auth/session - Check if user is logged in
 router.get('/api/auth/session', (req: Request, res: Response) => {

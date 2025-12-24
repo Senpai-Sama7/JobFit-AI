@@ -34,7 +34,7 @@ export const users = pgTable('users', {
 // ========================
 export const resumes = pgTable('resumes', {
   id: serial('id').primaryKey(),
-  userId: integer('user_id').references(() => users.id),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }),
   originalFileName: varchar('original_file_name', { length: 256 }),
   s3Key: text('s3_key').notNull(),
   parsedData: jsonb('parsed_data'),
@@ -87,7 +87,7 @@ export const tailoredResumes = pgTable('tailored_resumes', {
 // ========================
 export const activities = pgTable('activities', {
   id: serial('id').primaryKey(),
-  userId: integer('user_id').references(() => users.id).notNull(),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
   type: varchar('type', { length: 50 }).notNull(),
   title: varchar('title', { length: 256 }).notNull(),
   description: text('description'),

@@ -1,7 +1,7 @@
+import crypto from "crypto";
 import express from "express";
-import router from "./routes";
 import http from "http";
-import { setupVite, serveStatic, log } from "./vite";
+import router from "./routes";
 import { errorHandler } from "./error";
 import { setupAuth } from "./auth";
 import { requestLogger, errorRequestLogger, healthCheck } from "./middleware/request-logger";
@@ -10,6 +10,7 @@ import { logger } from "./logger";
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(securityHeaders);
 
 // Health check endpoint (before logging to reduce noise)
 app.get('/health', healthCheck());
@@ -20,9 +21,12 @@ app.use(requestLogger());
 // Setup authentication (session + passport)
 setupAuth(app);
 
+app.use(authMiddleware);
+
 (async () => {
   const server = http.createServer(app);
   app.use(router);
+  app.use(errorHandler);
 
   // Error logging and handling
   app.use(errorRequestLogger());

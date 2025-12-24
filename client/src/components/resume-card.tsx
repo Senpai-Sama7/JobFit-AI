@@ -56,7 +56,21 @@ export default function ResumeCard({ resume, onTailor, onOptimize }: ResumeCardP
 
   const handleOptimize = async () => {
     try {
-      const result = await optimizeMutation.mutateAsync(resume.id) as OptimizationResult;
+      const result = await optimizeMutation.mutateAsync(resume.id);
+
+      // Runtime validation to ensure the result matches the expected shape
+      if (
+        typeof result !== 'object' ||
+        result === null ||
+        typeof result.oldScore !== 'number' ||
+        typeof result.newScore !== 'number' ||
+        !Array.isArray(result.improvements)
+      ) {
+        // Handle error appropriately, e.g., show a toast message and return
+        console.error("Invalid optimization result shape:", result);
+        // Potentially show an error toast to the user
+        return;
+      }
       onOptimize({
         currentScore: result.oldScore,
         optimizedScore: result.newScore,
