@@ -197,7 +197,7 @@ export default function ResumeCard({ resume, onTailor, onOptimize }: ResumeCardP
         isOpen={showExportModal}
         onClose={() => setShowExportModal(false)}
         resumeId={resume.id}
-        resumeName={resume.originalFileName}
+        resumeName={resume.originalFileName || 'resume'}
       />
     </>
   );

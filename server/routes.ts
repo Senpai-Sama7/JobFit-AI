@@ -353,7 +353,7 @@ router.post('/api/create-subscription', async (req: Request, res: Response) => {
 // ========================
 
 // GET /api/dashboard/stats - Get dashboard statistics
-router.get('/api/dashboard/stats', async (_req: Request, res: Response) => {
+router.get('/api/dashboard/stats', async (req: Request, res: Response) => {
   try {
     const user = await getCurrentUser(req);
 
@@ -407,7 +407,7 @@ router.get('/api/dashboard/stats', async (_req: Request, res: Response) => {
 });
 
 // GET /api/activities - Get user activities
-router.get('/api/activities', async (_req: Request, res: Response) => {
+router.get('/api/activities', async (req: Request, res: Response) => {
   try {
     const user = await getCurrentUser(req);
 
@@ -430,7 +430,7 @@ router.get('/api/activities', async (_req: Request, res: Response) => {
 // ========================
 
 // GET /api/resumes - List all resumes for current user
-router.get('/api/resumes', async (_req: Request, res: Response) => {
+router.get('/api/resumes', async (req: Request, res: Response) => {
   try {
     const user = await getCurrentUser(req);
 
