@@ -1,13 +1,14 @@
+import crypto from "crypto";
 import express from "express";
-import router from "./routes";
 import http from "http";
-import { setupVite, serveStatic, log } from "./vite";
+import router from "./routes";
 import { errorHandler } from "./error";
 import { setupAuth } from "./auth";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(securityHeaders);
 
 // Setup authentication (session + passport)
 setupAuth(app);
@@ -15,36 +16,32 @@ setupAuth(app);
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
-
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
+  const requestId = crypto.randomUUID();
+  res.setHeader("x-request-id", requestId);
 
   res.on("finish", () => {
+    if (!path.startsWith("/api")) return;
     const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
-
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
-      }
-
-      log(logLine);
-    }
+    const logLine = JSON.stringify({
+      requestId,
+      method: req.method,
+      path,
+      status: res.statusCode,
+      durationMs: duration,
+      contentLength: Number(res.getHeader("content-length") || 0),
+    });
+    log(logLine);
   });
 
   next();
 });
 
+app.use(authMiddleware);
+
 (async () => {
   const server = http.createServer(app);
   app.use(router);
+  app.use(errorHandler);
 
   app.use(errorHandler);
 

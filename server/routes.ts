@@ -152,7 +152,7 @@ async function withResume(
     return;
   }
   const resumeId = idResult.data;
-  const [resume] = await db.select().from(resumes).where(eq(resumes.id, resumeId));
+  const [resume] = await db.select().from(resumes).where(and(eq(resumes.id, resumeId), eq(resumes.userId, req.userId!)));
   if (!resume) {
     res.status(404).json({ error: 'Resume not found' });
     return;
@@ -213,7 +213,7 @@ router.post('/api/auth/register', async (req: Request, res: Response) => {
     console.error('Registration Error:', error);
     res.status(500).json({ error: 'Registration failed' });
   }
-});
+}));
 
 // POST /api/auth/login - Login user
 router.post('/api/auth/login', (req: Request, res: Response, next: NextFunction) => {
@@ -266,7 +266,7 @@ router.post('/api/auth/logout', (req: Request, res: Response) => {
       res.json({ message: 'Logged out successfully' });
     });
   });
-});
+}));
 
 // GET /api/auth/session - Check if user is logged in
 router.get('/api/auth/session', (req: Request, res: Response) => {
