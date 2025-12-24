@@ -122,21 +122,19 @@ const loginSchema = z.object({
 
 // Helper: Get current user from session or demo mode
 async function getCurrentUser(req: Request): Promise<User> {
-  // If user is authenticated via session, use that
   if (req.user) {
     return req.user as User;
   }
-
+  if (process.env.NODE_ENV === 'production') {
+    throw new AuthenticationError();
+  }
   // Fallback to demo mode for development/testing
   const [existingUser] = await db.select().from(users).limit(1);
   if (existingUser) return existingUser;
-
-  // Create demo user if none exists
   const [newUser] = await db.insert(users).values({
     email: 'demo@jobfit.ai',
     hashedPassword: hashPassword('demo-password'),
   }).returning();
-
   return newUser;
 }
 
