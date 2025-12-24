@@ -18,11 +18,11 @@ export function parseRecommendations(content: string): Recommendation[] {
     const parsed = JSON.parse(content);
     if (!Array.isArray(parsed)) throw new Error();
     return parsed.map((r) => ({
-      jobTitle: String(r.jobTitle ?? ''),
-      companyName: String(r.companyName ?? ''),
-      fitScore: Number(r.fitScore) || 0,
-      description: String(r.description ?? ''),
-      source: String(r.source ?? 'ai'),
+      jobTitle: String(r.jobTitle ?? '').trim(),
+      companyName: String(r.companyName ?? '').trim(),
+      fitScore: Math.min(100, Math.max(0, Number(r.fitScore) || 0)),
+      description: String(r.description ?? '').trim(),
+      source: String(r.source ?? 'ai').trim(),
     }));
   } catch {
     throw new Error('Invalid AI response format');
