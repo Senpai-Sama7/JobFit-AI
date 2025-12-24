@@ -61,11 +61,12 @@ const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
   fileFilter: (_req, file, cb) => {
-    if (ALLOWED_MIME_TYPES.includes(file.mimetype) ||
-        file.originalname.match(/\.(pdf|docx|txt|md|rtf|odt)$/i)) {
+    const hasAllowedMime = ALLOWED_MIME_TYPES.includes(file.mimetype);
+    const hasAllowedExt = /\.(pdf|docx|txt|md|rtf|odt)$/i.test(file.originalname);
+    if (hasAllowedMime && hasAllowedExt) {
       cb(null, true);
     } else {
-      cb(new Error('Invalid file type. Allowed: PDF, DOCX, TXT, MD, RTF, ODT'));
+      cb(new multer.MulterError('LIMIT_UNEXPECTED_FILE', file.fieldname));
     }
   },
 });
