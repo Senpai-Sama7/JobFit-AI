@@ -6,6 +6,7 @@ import {
   timestamp,
   integer,
   jsonb,
+  index,
 } from 'drizzle-orm/pg-core';
 import { InferInsertModel, InferSelectModel } from 'drizzle-orm';
 
@@ -42,7 +43,11 @@ export const resumes = pgTable('resumes', {
   processingStatus: varchar('processing_status', { length: 50 }).default('pending'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+}, (table) => ({
+  userIdIdx: index('resumes_user_id_idx').on(table.userId),
+  createdAtIdx: index('resumes_created_at_idx').on(table.createdAt),
+  processingStatusIdx: index('resumes_processing_status_idx').on(table.processingStatus),
+}));
 
 // ========================
 // ROLE RECOMMENDATIONS TABLE
@@ -56,7 +61,10 @@ export const roleRecommendations = pgTable('role_recommendations', {
   description: text('description'),
   source: text('source'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+}, (table) => ({
+  resumeIdIdx: index('role_recommendations_resume_id_idx').on(table.resumeId),
+  fitScoreIdx: index('role_recommendations_fit_score_idx').on(table.fitScore),
+}));
 
 // ========================
 // TAILORED RESUMES TABLE
@@ -69,7 +77,10 @@ export const tailoredResumes = pgTable('tailored_resumes', {
   improvements: jsonb('improvements'),
   atsScore: integer('ats_score'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+}, (table) => ({
+  originalResumeIdIdx: index('tailored_resumes_original_resume_id_idx').on(table.originalResumeId),
+  createdAtIdx: index('tailored_resumes_created_at_idx').on(table.createdAt),
+}));
 
 // ========================
 // ACTIVITIES TABLE
@@ -82,7 +93,12 @@ export const activities = pgTable('activities', {
   description: text('description'),
   metadata: jsonb('metadata'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+}, (table) => ({
+  userIdIdx: index('activities_user_id_idx').on(table.userId),
+  typeIdx: index('activities_type_idx').on(table.type),
+  createdAtIdx: index('activities_created_at_idx').on(table.createdAt),
+  userTypeIdx: index('activities_user_type_idx').on(table.userId, table.type),
+}));
 
 // ========================
 // TYPE EXPORTS - SELECT MODELS
