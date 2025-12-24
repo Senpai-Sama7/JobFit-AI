@@ -3,10 +3,14 @@ import router from "./routes";
 import http from "http";
 import { setupVite, serveStatic, log } from "./vite";
 import { errorHandler } from "./error";
+import { setupAuth } from "./auth";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Setup authentication (session + passport)
+setupAuth(app);
 
 app.use((req, res, next) => {
   const start = Date.now();

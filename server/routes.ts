@@ -1,4 +1,5 @@
 import { Router, type Request, type Response, type NextFunction } from 'express';
+import passport from 'passport';
 import multer from 'multer';
 import { z } from 'zod';
 import { db } from './db';
@@ -17,6 +18,7 @@ import { processResume } from './services/parser';
 import { tailorResume } from './services/tailoring';
 import { generateRoleRecommendations } from './services/recommender';
 import { getOpenAIClient } from './services/openai';
+import { requireAuth, registerUser, hashPassword } from './auth';
 import { eq, desc, sql, and, avg, count } from 'drizzle-orm';
 
 const router = Router();
@@ -83,15 +85,32 @@ const manualResumeSchema = z.object({
   }),
 });
 
-// Helper: Get current user (for now, returns demo user or creates one)
-async function getCurrentUser(): Promise<User> {
+// Validation schemas for auth
+const registerSchema = z.object({
+  email: z.string().email('Invalid email format'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+});
+
+const loginSchema = z.object({
+  email: z.string().email('Invalid email format'),
+  password: z.string().min(1, 'Password is required'),
+});
+
+// Helper: Get current user from session or demo mode
+async function getCurrentUser(req: Request): Promise<User> {
+  // If user is authenticated via session, use that
+  if (req.user) {
+    return req.user as User;
+  }
+
+  // Fallback to demo mode for development/testing
   const [existingUser] = await db.select().from(users).limit(1);
   if (existingUser) return existingUser;
 
   // Create demo user if none exists
   const [newUser] = await db.insert(users).values({
     email: 'demo@jobfit.ai',
-    hashedPassword: 'demo-password-hash',
+    hashedPassword: hashPassword('demo-password'),
   }).returning();
 
   return newUser;
@@ -129,13 +148,126 @@ async function logActivity(userId: number, type: string, title: string, descript
 }
 
 // ========================
+// AUTHENTICATION ROUTES
+// ========================
+
+// POST /api/auth/register - Register a new user
+router.post('/api/auth/register', async (req: Request, res: Response) => {
+  const body = registerSchema.safeParse(req.body);
+  if (!body.success) {
+    return res.status(400).json({ error: 'Validation failed', details: body.error.format() });
+  }
+
+  try {
+    const { email, password } = body.data;
+    const result = await registerUser(email, password);
+
+    if (!result.success) {
+      return res.status(400).json({ error: result.error });
+    }
+
+    // Auto-login after registration
+    req.login(result.user, (err) => {
+      if (err) {
+        console.error('Auto-login after registration failed:', err);
+        return res.status(201).json({
+          message: 'Registration successful. Please log in.',
+          user: { id: result.user.id, email: result.user.email },
+        });
+      }
+
+      res.status(201).json({
+        message: 'Registration successful',
+        user: {
+          id: result.user.id,
+          email: result.user.email,
+          subscriptionStatus: result.user.subscriptionStatus,
+        },
+      });
+    });
+  } catch (error) {
+    console.error('Registration Error:', error);
+    res.status(500).json({ error: 'Registration failed' });
+  }
+});
+
+// POST /api/auth/login - Login user
+router.post('/api/auth/login', (req: Request, res: Response, next: NextFunction) => {
+  const body = loginSchema.safeParse(req.body);
+  if (!body.success) {
+    return res.status(400).json({ error: 'Validation failed', details: body.error.format() });
+  }
+
+  passport.authenticate('local', (err: Error | null, user: Express.User | false, info: { message: string }) => {
+    if (err) {
+      console.error('Login Error:', err);
+      return res.status(500).json({ error: 'Login failed' });
+    }
+
+    if (!user) {
+      return res.status(401).json({ error: info?.message || 'Invalid credentials' });
+    }
+
+    req.login(user, (loginErr) => {
+      if (loginErr) {
+        console.error('Session creation failed:', loginErr);
+        return res.status(500).json({ error: 'Login failed' });
+      }
+
+      res.json({
+        message: 'Login successful',
+        user: {
+          id: user.id,
+          email: user.email,
+          subscriptionStatus: user.subscriptionStatus,
+        },
+      });
+    });
+  })(req, res, next);
+});
+
+// POST /api/auth/logout - Logout user
+router.post('/api/auth/logout', (req: Request, res: Response) => {
+  req.logout((err) => {
+    if (err) {
+      console.error('Logout Error:', err);
+      return res.status(500).json({ error: 'Logout failed' });
+    }
+
+    req.session.destroy((sessionErr) => {
+      if (sessionErr) {
+        console.error('Session destroy failed:', sessionErr);
+      }
+      res.clearCookie('jobfit.sid');
+      res.json({ message: 'Logged out successfully' });
+    });
+  });
+});
+
+// GET /api/auth/session - Check if user is logged in
+router.get('/api/auth/session', (req: Request, res: Response) => {
+  if (req.isAuthenticated() && req.user) {
+    res.json({
+      authenticated: true,
+      user: {
+        id: req.user.id,
+        email: req.user.email,
+        subscriptionStatus: req.user.subscriptionStatus,
+      },
+    });
+  } else {
+    res.json({ authenticated: false });
+  }
+});
+
+// ========================
 // USER ROUTES
 // ========================
 
 // GET /api/user - Get current user profile
-router.get('/api/user', async (_req: Request, res: Response) => {
+router.get('/api/user', async (req: Request, res: Response) => {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser(req);
 
     // Get user stats
     const userResumes = await db.select().from(resumes).where(eq(resumes.userId, user.id));
@@ -165,7 +297,7 @@ router.post('/api/create-subscription', async (req: Request, res: Response) => {
   }
 
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser(req);
     const { plan } = body.data;
 
     const pricing = {
@@ -199,7 +331,7 @@ router.post('/api/create-subscription', async (req: Request, res: Response) => {
 // GET /api/dashboard/stats - Get dashboard statistics
 router.get('/api/dashboard/stats', async (_req: Request, res: Response) => {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser(req);
 
     // Get all resumes for this user
     const userResumes = await db.select().from(resumes).where(eq(resumes.userId, user.id));
@@ -253,7 +385,7 @@ router.get('/api/dashboard/stats', async (_req: Request, res: Response) => {
 // GET /api/activities - Get user activities
 router.get('/api/activities', async (_req: Request, res: Response) => {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser(req);
 
     const userActivities = await db
       .select()
@@ -276,7 +408,7 @@ router.get('/api/activities', async (_req: Request, res: Response) => {
 // GET /api/resumes - List all resumes for current user
 router.get('/api/resumes', async (_req: Request, res: Response) => {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser(req);
 
     const userResumes = await db
       .select()
@@ -322,7 +454,7 @@ router.post('/api/resumes/upload', upload.single('resume'), async (req: Request,
   }
 
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser(req);
     const simulatedS3Key = `resumes/${user.id}/${Date.now()}-${req.file.originalname}`;
 
     const [newResume] = await db
@@ -360,7 +492,7 @@ router.post('/api/resumes/manual', async (req: Request, res: Response) => {
   }
 
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUser(req);
     const { resumeData } = body.data;
 
     // Build skills array from various sources
@@ -446,7 +578,7 @@ router.get('/api/resumes/:id/status', (req: Request, res: Response) =>
 router.delete('/api/resumes/:id', async (req: Request, res: Response) => {
   await withResume(req, res, async (resume, resumeId) => {
     try {
-      const user = await getCurrentUser();
+      const user = await getCurrentUser(req);
 
       // Delete related records first
       await db.delete(roleRecommendations).where(eq(roleRecommendations.resumeId, resumeId));
@@ -474,7 +606,7 @@ router.delete('/api/resumes/:id', async (req: Request, res: Response) => {
 router.post('/api/resumes/:id/optimize', (req: Request, res: Response) =>
   withResume(req, res, async (resume, resumeId) => {
     try {
-      const user = await getCurrentUser();
+      const user = await getCurrentUser(req);
       const originalScore = resume.atsScore || 0;
       const parsedData = resume.parsedData as Record<string, unknown> | null;
       const text = (parsedData?.text as string) || '';
@@ -567,7 +699,7 @@ router.post('/api/resumes/:id/tailor', async (req: Request, res: Response) => {
 
   await withResume(req, res, async (resume, resumeId) => {
     try {
-      const user = await getCurrentUser();
+      const user = await getCurrentUser(req);
       const parsedData = resume.parsedData as Record<string, unknown> | null;
       const text = (parsedData?.text as string) || '';
 
@@ -604,7 +736,7 @@ router.post('/api/resumes/:id/tailor', async (req: Request, res: Response) => {
 router.get('/api/resumes/:id/recommendations', (req: Request, res: Response) =>
   withResume(req, res, async (resume, resumeId) => {
     try {
-      const user = await getCurrentUser();
+      const user = await getCurrentUser(req);
       const skillProfile = resume.skillProfile as SkillProfile | null;
 
       if (!skillProfile || !skillProfile.skills?.length) {
@@ -678,7 +810,7 @@ router.post('/api/resumes/:id/export', async (req: Request, res: Response) => {
 
   await withResume(req, res, async (resume, resumeId) => {
     try {
-      const user = await getCurrentUser();
+      const user = await getCurrentUser(req);
       const parsedData = resume.parsedData as Record<string, unknown> | null;
       let content = (parsedData?.text as string) || '';
 
