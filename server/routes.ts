@@ -19,9 +19,33 @@ import { tailorResume } from './services/tailoring';
 import { generateRoleRecommendations } from './services/recommender';
 import { getOpenAIClient } from './services/openai';
 import { requireAuth, registerUser, hashPassword } from './auth';
-import { eq, desc, sql, and, avg, count } from 'drizzle-orm';
+import { eq, desc, and, count, inArray } from 'drizzle-orm';
 
 const router = Router();
+
+// ========================
+// SECURITY UTILITIES
+// ========================
+
+/**
+ * Sanitize filename to prevent path traversal and other attacks
+ */
+function sanitizeFilename(filename: string): string {
+  return filename
+    .replace(/[^a-zA-Z0-9._-]/g, '_')  // Only allow safe characters
+    .replace(/\.+/g, '.')              // Prevent multiple dots
+    .substring(0, 255);                // Limit length
+}
+
+/**
+ * Escape content for CSV to prevent formula injection
+ */
+function escapeCSVContent(content: string): string {
+  return content
+    .replace(/"/g, '""')               // Escape double quotes
+    .replace(/\n/g, ' ')               // Replace newlines
+    .replace(/^[=+@-]/, "'$&");        // Prefix dangerous formula chars
+}
 
 // File upload configuration with validation
 const ALLOWED_MIME_TYPES = [
@@ -349,7 +373,7 @@ router.get('/api/dashboard/stats', async (_req: Request, res: Response) => {
       const [recCount] = await db
         .select({ count: count() })
         .from(roleRecommendations)
-        .where(sql`${roleRecommendations.resumeId} IN ${resumeIds}`);
+        .where(inArray(roleRecommendations.resumeId, resumeIds));
       roleMatches = recCount?.count || 0;
     }
 
@@ -359,7 +383,7 @@ router.get('/api/dashboard/stats', async (_req: Request, res: Response) => {
       const [tailored] = await db
         .select({ count: count() })
         .from(tailoredResumes)
-        .where(sql`${tailoredResumes.originalResumeId} IN ${resumeIds}`);
+        .where(inArray(tailoredResumes.originalResumeId, resumeIds));
       tailoredCount = tailored?.count || 0;
     }
 
@@ -455,24 +479,26 @@ router.post('/api/resumes/upload', upload.single('resume'), async (req: Request,
 
   try {
     const user = await getCurrentUser(req);
-    const simulatedS3Key = `resumes/${user.id}/${Date.now()}-${req.file.originalname}`;
+    // Sanitize filename to prevent path traversal and injection attacks
+    const safeFilename = sanitizeFilename(req.file.originalname);
+    const simulatedS3Key = `resumes/${user.id}/${Date.now()}-${safeFilename}`;
 
     const [newResume] = await db
       .insert(resumes)
       .values({
         userId: user.id,
-        originalFileName: req.file.originalname,
+        originalFileName: safeFilename,
         s3Key: simulatedS3Key,
         processingStatus: 'processing',
       })
       .returning();
 
     // Process asynchronously
-    processResume(newResume.id, req.file.buffer, req.file.originalname);
+    processResume(newResume.id, req.file.buffer, safeFilename);
 
     // Log activity
     await logActivity(user.id, 'upload', 'Resume Uploaded',
-      `Uploaded ${req.file.originalname} for processing`);
+      `Uploaded ${safeFilename} for processing`);
 
     res.status(202).json({
       message: 'Resume upload accepted. Processing in background.',
@@ -831,25 +857,32 @@ router.post('/api/resumes/:id/export', async (req: Request, res: Response) => {
       await logActivity(user.id, 'exported', 'Resume Exported',
         `Exported resume as ${format.toUpperCase()}`);
 
-      const filename = resume.originalFileName?.replace(/\.[^/.]+$/, '') || 'resume';
+      // Sanitize filename for safe Content-Disposition header
+      const baseFilename = resume.originalFileName?.replace(/\.[^/.]+$/, '') || 'resume';
+      const safeFilename = sanitizeFilename(baseFilename);
+      const encodedFilename = encodeURIComponent(safeFilename);
 
       switch (format) {
         case 'txt':
           res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-          res.setHeader('Content-Disposition', `attachment; filename="${filename}.txt"`);
+          res.setHeader('Content-Disposition',
+            `attachment; filename="${safeFilename}.txt"; filename*=UTF-8''${encodedFilename}.txt`);
           res.send(content);
           break;
 
         case 'csv':
-          const csvContent = `"Section","Content"\n"Full Resume","${content.replace(/"/g, '""').replace(/\n/g, ' ')}"`;
+          // Use escapeCSVContent to prevent formula injection
+          const csvContent = `"Section","Content"\n"Full Resume","${escapeCSVContent(content)}"`;
           res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-          res.setHeader('Content-Disposition', `attachment; filename="${filename}.csv"`);
+          res.setHeader('Content-Disposition',
+            `attachment; filename="${safeFilename}.csv"; filename*=UTF-8''${encodedFilename}.csv`);
           res.send(csvContent);
           break;
 
         case 'json':
           res.setHeader('Content-Type', 'application/json');
-          res.setHeader('Content-Disposition', `attachment; filename="${filename}.json"`);
+          res.setHeader('Content-Disposition',
+            `attachment; filename="${safeFilename}.json"; filename*=UTF-8''${encodedFilename}.json`);
           res.json({
             resume: parsedData,
             tailored: tailored?.tailoredContent || null,
