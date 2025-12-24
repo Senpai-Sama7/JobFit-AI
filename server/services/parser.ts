@@ -3,8 +3,8 @@ import { db } from '../db';
 import { resumes, SkillProfile } from '../../shared/schema';
 import { eq } from 'drizzle-orm';
 import { extractParsedData } from './parserUtils';
-import { runStructuredChat } from './openai';
-import { z } from 'zod';
+import { getOpenAIClient } from './openai';
+import { logger } from '../logger';
 
 /**
  * Extract raw text from PDF or DOCX buffer.
@@ -61,9 +61,9 @@ export async function processResume(resumeId: number, fileBuffer: Buffer, fileNa
       processingStatus: 'processed',
       updatedAt: new Date(),
     }).where(eq(resumes.id, resumeId));
-    console.log(`Resume ID ${resumeId} processed: ATS=${analysis.atsScore}`);
+    logger.info(`Resume processed successfully`, { resumeId, atsScore });
   } catch (error) {
-    console.error(`Error processing resume ID ${resumeId}:`, error);
+    logger.error(`Failed to process resume`, error, { resumeId });
     await db.update(resumes)
       .set({ processingStatus: 'error', updatedAt: new Date() })
       .where(eq(resumes.id, resumeId));

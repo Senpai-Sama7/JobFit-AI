@@ -1,6 +1,6 @@
 import { type Request, type Response, type NextFunction } from 'express';
 import { ZodError } from 'zod';
-import { log } from './vite';
+import { logger } from './logger';
 
 /**
  * Error codes for consistent API responses
@@ -163,12 +163,11 @@ export function errorHandler(
   // Include stack trace in development
   if (process.env.NODE_ENV !== 'production' && err.stack) {
     body.error = { ...body.error as object, stack: err.stack };
-    console.error(err.stack);
   }
 
   // Log error
   if (shouldLogError(status)) {
-    log(`${status} [${code}] ${message}`, 'error');
+    logger.error(`${status} [${code}] ${message}`, err);
   }
 
   res.status(status).json(body);

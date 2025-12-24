@@ -7,6 +7,7 @@ import { users, type User } from '../shared/schema';
 import { eq } from 'drizzle-orm';
 import { scryptSync, randomBytes, timingSafeEqual } from 'crypto';
 import ConnectPgSimple from 'connect-pg-simple';
+import { logger } from './logger';
 
 // Extend Express Request type to include user
 declare global {
@@ -118,7 +119,7 @@ function getSessionSecret(): string {
 
   // In production, require a secret
   if (process.env.NODE_ENV === 'production') {
-    console.warn('WARNING: SESSION_SECRET not set. Using random secret (sessions will not persist across restarts)');
+    logger.warn('SESSION_SECRET not set - using random secret (sessions will not persist across restarts)');
   }
 
   return randomBytes(32).toString('hex');

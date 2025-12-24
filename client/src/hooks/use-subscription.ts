@@ -40,9 +40,9 @@ export function useCreateSubscription() {
         });
       }
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast({
-        title: "Subscription Error", 
+        title: "Subscription Error",
         description: error.message || "Failed to create subscription",
         variant: "destructive",
       });

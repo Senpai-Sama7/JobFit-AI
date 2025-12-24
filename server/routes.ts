@@ -3,6 +3,7 @@ import passport from 'passport';
 import multer from 'multer';
 import { z } from 'zod';
 import { db } from './db';
+import { logger } from './logger';
 import {
   users,
   resumes,
@@ -20,8 +21,12 @@ import { generateRoleRecommendations } from './services/recommender';
 import { getOpenAIClient } from './services/openai';
 import { requireAuth, registerUser, hashPassword } from './auth';
 import { eq, desc, and, count, inArray } from 'drizzle-orm';
+import { rateLimiters } from './middleware/rate-limit';
 
 const router = Router();
+
+// Apply standard rate limiting to all API routes
+router.use('/api', rateLimiters.standard);
 
 // ========================
 // SECURITY UTILITIES
@@ -174,8 +179,8 @@ async function logActivity(userId: number, type: string, title: string, descript
 // AUTHENTICATION ROUTES
 // ========================
 
-// POST /api/auth/register - Register a new user
-router.post('/api/auth/register', async (req: Request, res: Response) => {
+// POST /api/auth/register - Register a new user (with auth rate limiting for brute force protection)
+router.post('/api/auth/register', rateLimiters.auth, async (req: Request, res: Response) => {
   const body = registerSchema.safeParse(req.body);
   if (!body.success) {
     return res.status(400).json({ error: 'Validation failed', details: body.error.format() });
@@ -192,7 +197,7 @@ router.post('/api/auth/register', async (req: Request, res: Response) => {
     // Auto-login after registration
     req.login(result.user, (err) => {
       if (err) {
-        console.error('Auto-login after registration failed:', err);
+        logger.error('Auto-login after registration failed', err);
         return res.status(201).json({
           message: 'Registration successful. Please log in.',
           user: { id: result.user.id, email: result.user.email },
@@ -209,13 +214,13 @@ router.post('/api/auth/register', async (req: Request, res: Response) => {
       });
     });
   } catch (error) {
-    console.error('Registration Error:', error);
+    logger.error('Registration failed', error);
     res.status(500).json({ error: 'Registration failed' });
   }
 }));
 
-// POST /api/auth/login - Login user
-router.post('/api/auth/login', (req: Request, res: Response, next: NextFunction) => {
+// POST /api/auth/login - Login user (with auth rate limiting for brute force protection)
+router.post('/api/auth/login', rateLimiters.auth, (req: Request, res: Response, next: NextFunction) => {
   const body = loginSchema.safeParse(req.body);
   if (!body.success) {
     return res.status(400).json({ error: 'Validation failed', details: body.error.format() });
@@ -223,7 +228,7 @@ router.post('/api/auth/login', (req: Request, res: Response, next: NextFunction)
 
   passport.authenticate('local', (err: Error | null, user: Express.User | false, info: { message: string }) => {
     if (err) {
-      console.error('Login Error:', err);
+      logger.error('Login failed', err);
       return res.status(500).json({ error: 'Login failed' });
     }
 
@@ -233,7 +238,7 @@ router.post('/api/auth/login', (req: Request, res: Response, next: NextFunction)
 
     req.login(user, (loginErr) => {
       if (loginErr) {
-        console.error('Session creation failed:', loginErr);
+        logger.error('Session creation failed', loginErr);
         return res.status(500).json({ error: 'Login failed' });
       }
 
@@ -253,13 +258,13 @@ router.post('/api/auth/login', (req: Request, res: Response, next: NextFunction)
 router.post('/api/auth/logout', (req: Request, res: Response) => {
   req.logout((err) => {
     if (err) {
-      console.error('Logout Error:', err);
+      logger.error('Logout failed', err);
       return res.status(500).json({ error: 'Logout failed' });
     }
 
     req.session.destroy((sessionErr) => {
       if (sessionErr) {
-        console.error('Session destroy failed:', sessionErr);
+        logger.error('Session destroy failed', sessionErr);
       }
       res.clearCookie('jobfit.sid');
       res.json({ message: 'Logged out successfully' });
@@ -307,7 +312,7 @@ router.get('/api/user', async (req: Request, res: Response) => {
       createdAt: user.createdAt,
     });
   } catch (error) {
-    console.error('Get User Error:', error);
+    logger.error('Failed to get user profile', error);
     res.status(500).json({ error: 'Failed to get user profile' });
   }
 });
@@ -342,7 +347,7 @@ router.post('/api/create-subscription', async (req: Request, res: Response) => {
       message: 'Demo subscription created. In production, this would redirect to Stripe checkout.',
     });
   } catch (error) {
-    console.error('Subscription Error:', error);
+    logger.error('Failed to create subscription', error);
     res.status(500).json({ error: 'Failed to create subscription' });
   }
 });
@@ -400,7 +405,7 @@ router.get('/api/dashboard/stats', async (req: Request, res: Response) => {
       exports: exportCount?.count || 0,
     });
   } catch (error) {
-    console.error('Dashboard Stats Error:', error);
+    logger.error('Failed to get dashboard stats', error);
     res.status(500).json({ error: 'Failed to get dashboard stats' });
   }
 });
@@ -419,7 +424,7 @@ router.get('/api/activities', async (req: Request, res: Response) => {
 
     res.json(userActivities);
   } catch (error) {
-    console.error('Activities Error:', error);
+    logger.error('Failed to get activities', error);
     res.status(500).json({ error: 'Failed to get activities' });
   }
 });
@@ -441,7 +446,7 @@ router.get('/api/resumes', async (req: Request, res: Response) => {
 
     res.json(userResumes);
   } catch (error) {
-    console.error('List Resumes Error:', error);
+    logger.error('Failed to list resumes', error);
     res.status(500).json({ error: 'Failed to list resumes' });
   }
 });
@@ -470,8 +475,8 @@ router.get('/api/resumes/:id', async (req: Request, res: Response) => {
   });
 });
 
-// POST /api/resumes/upload - Upload and process a resume file
-router.post('/api/resumes/upload', upload.single('resume'), async (req: Request, res: Response) => {
+// POST /api/resumes/upload - Upload and process a resume file (with upload rate limiting)
+router.post('/api/resumes/upload', rateLimiters.upload, upload.single('resume'), async (req: Request, res: Response) => {
   if (!req.file) {
     return res.status(400).json({ error: 'No resume file provided' });
   }
@@ -504,7 +509,7 @@ router.post('/api/resumes/upload', upload.single('resume'), async (req: Request,
       resumeId: newResume.id,
     });
   } catch (error) {
-    console.error('Upload Error:', error);
+    logger.error('Failed to process resume upload', error);
     res.status(500).json({ error: 'Failed to process resume upload' });
   }
 });
@@ -583,7 +588,7 @@ router.post('/api/resumes/manual', async (req: Request, res: Response) => {
 
     res.status(201).json(newResume);
   } catch (error) {
-    console.error('Manual Resume Error:', error);
+    logger.error('Failed to create manual resume', error);
     res.status(500).json({ error: 'Failed to create resume' });
   }
 });
@@ -617,18 +622,18 @@ router.delete('/api/resumes/:id', async (req: Request, res: Response) => {
 
       res.json({ success: true, message: 'Resume deleted successfully' });
     } catch (error) {
-      console.error('Delete Resume Error:', error);
+      logger.error('Failed to delete resume', error);
       res.status(500).json({ error: 'Failed to delete resume' });
     }
   });
 });
 
 // ========================
-// RESUME AI OPERATIONS
+// RESUME AI OPERATIONS (with AI rate limiting to protect OpenAI API costs)
 // ========================
 
 // POST /api/resumes/:id/optimize - Optimize resume for ATS
-router.post('/api/resumes/:id/optimize', (req: Request, res: Response) =>
+router.post('/api/resumes/:id/optimize', rateLimiters.ai, (req: Request, res: Response) =>
   withResume(req, res, async (resume, resumeId) => {
     try {
       const user = await getCurrentUser(req);
@@ -679,7 +684,7 @@ ${text}
           improvements = parsed.improvements.map(String).filter(Boolean);
         }
       } catch (parseError) {
-        console.error('Failed to parse AI response for optimization:', parseError);
+        logger.warn('Failed to parse AI response for optimization, using fallback');
         // Fallback improvements if parsing fails
         improvements = [
           'Add more quantifiable achievements with metrics',
@@ -707,14 +712,14 @@ ${text}
           : 'Resume analyzed. Apply the suggestions to improve your score.',
       });
     } catch (error) {
-      console.error('Optimize Error:', error);
+      logger.error('Failed to optimize resume', error);
       res.status(500).json({ error: 'Failed to optimize resume' });
     }
   })
 );
 
 // POST /api/resumes/:id/tailor - Tailor resume to job description
-router.post('/api/resumes/:id/tailor', async (req: Request, res: Response) => {
+router.post('/api/resumes/:id/tailor', rateLimiters.ai, async (req: Request, res: Response) => {
   const body = tailorSchema.safeParse(req.body);
   if (!body.success) {
     return res.status(400).json({ error: 'Invalid request', details: body.error.format() });
@@ -751,14 +756,14 @@ router.post('/api/resumes/:id/tailor', async (req: Request, res: Response) => {
 
       res.json(saved);
     } catch (error) {
-      console.error('Tailor Error:', error);
+      logger.error('Failed to tailor resume', error);
       res.status(500).json({ error: 'Failed to tailor resume' });
     }
   });
 });
 
 // GET /api/resumes/:id/recommendations - Get role recommendations
-router.get('/api/resumes/:id/recommendations', (req: Request, res: Response) =>
+router.get('/api/resumes/:id/recommendations', rateLimiters.ai, (req: Request, res: Response) =>
   withResume(req, res, async (resume, resumeId) => {
     try {
       const user = await getCurrentUser(req);
@@ -818,7 +823,7 @@ router.get('/api/resumes/:id/recommendations', (req: Request, res: Response) =>
         requiredSkills: skillProfile.skills.slice(0, 5),
       })));
     } catch (error) {
-      console.error('Recommendations Error:', error);
+      logger.error('Failed to generate recommendations', error);
       res.status(500).json({ error: 'Failed to generate recommendations' });
     }
   })
@@ -894,7 +899,7 @@ router.post('/api/resumes/:id/export', async (req: Request, res: Response) => {
           res.status(400).json({ error: 'Unsupported export format' });
       }
     } catch (error) {
-      console.error('Export Error:', error);
+      logger.error('Failed to export resume', error);
       res.status(500).json({ error: 'Failed to export resume' });
     }
   });

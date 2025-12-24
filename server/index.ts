@@ -4,37 +4,22 @@ import http from "http";
 import router from "./routes";
 import { errorHandler } from "./error";
 import { setupAuth } from "./auth";
+import { requestLogger, errorRequestLogger, healthCheck } from "./middleware/request-logger";
+import { logger } from "./logger";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(securityHeaders);
 
+// Health check endpoint (before logging to reduce noise)
+app.get('/health', healthCheck());
+
+// Request logging middleware
+app.use(requestLogger());
+
 // Setup authentication (session + passport)
 setupAuth(app);
-
-app.use((req, res, next) => {
-  const start = Date.now();
-  const path = req.path;
-  const requestId = crypto.randomUUID();
-  res.setHeader("x-request-id", requestId);
-
-  res.on("finish", () => {
-    if (!path.startsWith("/api")) return;
-    const duration = Date.now() - start;
-    const logLine = JSON.stringify({
-      requestId,
-      method: req.method,
-      path,
-      status: res.statusCode,
-      durationMs: duration,
-      contentLength: Number(res.getHeader("content-length") || 0),
-    });
-    log(logLine);
-  });
-
-  next();
-});
 
 app.use(authMiddleware);
 
@@ -43,6 +28,8 @@ app.use(authMiddleware);
   app.use(router);
   app.use(errorHandler);
 
+  // Error logging and handling
+  app.use(errorRequestLogger());
   app.use(errorHandler);
 
   // importantly only setup vite in development and after
@@ -63,6 +50,6 @@ app.use(authMiddleware);
     host: "0.0.0.0",
     reusePort: true,
   }, () => {
-    log(`serving on port ${port}`);
+    logger.info(`Server started`, { port, env: app.get('env') });
   });
 })();
