@@ -20,17 +20,10 @@ interface RateLimitConfig {
 // In production, this should be replaced with Redis for distributed systems
 const rateLimitStore = new Map<string, RateLimitRecord>();
 
-// Clean up expired entries periodically
-const CLEANUP_INTERVAL = 60_000; // 1 minute
-setInterval(() => {
-  const now = Date.now();
-  const entries = Array.from(rateLimitStore.entries());
-  for (const [key, record] of entries) {
-    if (record.resetAt <= now) {
-      rateLimitStore.delete(key);
-    }
-  }
-}, CLEANUP_INTERVAL);
+// The periodic cleanup has been removed to prevent potential event loop blocking
+// if the rateLimitStore grows very large. Expired entries for active keys are
+// handled within the middleware logic itself. For a distributed system,
+// a proper external store like Redis with TTL should be used.
 
 /**
  * Default key generator - uses IP address and authenticated user ID
