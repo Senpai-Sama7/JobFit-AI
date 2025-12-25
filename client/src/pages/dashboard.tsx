@@ -1,9 +1,11 @@
-import { useState, type ReactNode } from "react";
+import { useState, useRef, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useResumes, useOptimizeResume, useDeleteResume } from "@/hooks/use-resume";
 import { useSubscriptionLimits, useCreateSubscription } from "@/hooks/use-subscription";
+import { useScrollReveal, useStaggeredReveal } from "@/hooks/use-scroll-reveal";
+import { GradientMesh } from "@/components/premium-background";
 import SubscriptionModal from "@/components/subscription-modal";
 import Navigation from "@/components/navigation";
 import { FileUpload } from "@/components/file-upload";
@@ -65,6 +67,13 @@ export default function Dashboard() {
   const [showOptimizationModal, setShowOptimizationModal] = useState(false);
   const [optimizationData, setOptimizationData] = useState<OptimizationData | null>(null);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+
+  // Scroll reveal animations
+  const [heroRef, heroVisible] = useScrollReveal<HTMLDivElement>();
+  const [headerRef, headerVisible] = useScrollReveal<HTMLDivElement>();
+  const [actionsContainerRef, actionsVisible] = useStaggeredReveal(4);
+  const [uploadRef, uploadVisible] = useScrollReveal<HTMLDivElement>();
+  const [statsRef, statsVisible] = useScrollReveal<HTMLDivElement>();
 
   const subscriptionLimits = useSubscriptionLimits();
   const createSubscription = useCreateSubscription();
@@ -267,17 +276,29 @@ Certified Scrum Master (CSM) | 2021`;
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-primary-50/30 relative">
+      <GradientMesh />
       <Navigation />
 
-      {/* App Description Banner */}
-      <div className="w-full bg-blue-50 border-b border-blue-200 py-4 px-4 flex items-center justify-center">
-        <span className="text-lg md:text-xl font-semibold text-blue-900 text-center max-w-3xl">
-          JobFit AI is a comprehensive web application designed to help job seekers optimize their
-          resumes using AI-powered analysis, role recommendations, and tailored resume generation.
-          The platform leverages advanced AI and real-time job market data to maximize job
-          application success rates.
-        </span>
+      {/* Hero Banner with Premium Gradient */}
+      <div
+        ref={heroRef}
+        className={`w-full bg-gradient-to-r from-primary-600 via-purple-600 to-primary-700 py-8 px-4 relative overflow-hidden transition-all duration-700 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+      >
+        {/* Premium shimmer overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
+
+        <div className="max-w-4xl mx-auto text-center relative z-10">
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-display font-bold text-white mb-3 leading-tight">
+            Transform Your Career with AI-Powered Precision
+          </h1>
+          <p className="text-base md:text-lg text-white/90 max-w-2xl mx-auto font-light">
+            JobFit AI leverages advanced AI and real-time job market data to optimize your resume,
+            match you with perfect roles, and maximize your application success rate.
+          </p>
+        </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -324,15 +345,20 @@ Certified Scrum Master (CSM) | 2021`;
         </div>
 
         {/* Header Section */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-semibold text-grey-900 mb-2">Dashboard</h1>
+        <div
+          ref={headerRef}
+          className={`mb-8 transition-all duration-700 delay-100 ${headerVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
+        >
+          <h1 className="text-3xl font-display font-bold text-grey-900 mb-2">Dashboard</h1>
           <p className="text-grey-600">Manage your resumes and discover your perfect career fit</p>
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div ref={actionsContainerRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card
-            className="glass-card border-0 cursor-pointer group hover:shadow-glass transition-all duration-300 shimmer"
+            className={`glass-card border-0 cursor-pointer group hover:shadow-glass transition-all duration-500 card-3d ${
+              actionsVisible[0] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+            }`}
             onClick={() => {
               const input = document.querySelector("[data-upload-trigger]") as HTMLInputElement;
               if (input) input.click();
@@ -340,7 +366,7 @@ Certified Scrum Master (CSM) | 2021`;
           >
             <CardContent className="p-6">
               <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center group-hover:bg-primary-200 transition-colors">
+                <div className="w-12 h-12 bg-gradient-to-br from-primary-100 to-primary-200 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
                   <FileUp className="text-primary-600 h-5 w-5" />
                 </div>
                 <div>
@@ -352,12 +378,14 @@ Certified Scrum Master (CSM) | 2021`;
           </Card>
 
           <Card
-            className="glass-card border-0 cursor-pointer group hover:shadow-glass transition-all duration-300 shimmer"
+            className={`glass-card border-0 cursor-pointer group hover:shadow-glass transition-all duration-500 card-3d ${
+              actionsVisible[1] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+            }`}
             onClick={() => setShowManualForm(true)}
           >
             <CardContent className="p-6">
               <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-success-50 rounded-lg flex items-center justify-center group-hover:bg-success-100 transition-colors">
+                <div className="w-12 h-12 bg-gradient-to-br from-success-50 to-success-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
                   <Edit className="text-success-600 h-5 w-5" />
                 </div>
                 <div>
@@ -369,14 +397,14 @@ Certified Scrum Master (CSM) | 2021`;
           </Card>
 
           <Card
-            className={`glass-card border-0 cursor-pointer group hover:shadow-glass transition-all duration-300 shimmer ${
-              !latestResume ? "opacity-50 cursor-not-allowed" : ""
-            }`}
+            className={`glass-card border-0 cursor-pointer group hover:shadow-glass transition-all duration-500 card-3d ${
+              actionsVisible[2] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+            } ${!latestResume ? "opacity-50 cursor-not-allowed" : ""}`}
             onClick={latestResume ? handleTailorResume : undefined}
           >
             <CardContent className="p-6">
               <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center group-hover:bg-orange-200 transition-colors">
+                <div className="w-12 h-12 bg-gradient-to-br from-orange-100 to-orange-200 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
                   <Wand2 className="text-orange-600 h-5 w-5" />
                 </div>
                 <div>
@@ -390,9 +418,9 @@ Certified Scrum Master (CSM) | 2021`;
           </Card>
 
           <Card
-            className={`glass-card border-0 cursor-pointer group hover:shadow-glass transition-all duration-300 shimmer ${
-              !latestResume ? "opacity-50 cursor-not-allowed" : ""
-            }`}
+            className={`glass-card border-0 cursor-pointer group hover:shadow-glass transition-all duration-500 card-3d ${
+              actionsVisible[3] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+            } ${!latestResume ? "opacity-50 cursor-not-allowed" : ""}`}
             onClick={() =>
               latestResume &&
               document.querySelector("[data-recommendations-scroll]")?.scrollIntoView({ behavior: "smooth" })
@@ -400,7 +428,7 @@ Certified Scrum Master (CSM) | 2021`;
           >
             <CardContent className="p-6">
               <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition-colors">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
                   <Search className="text-purple-600 h-5 w-5" />
                 </div>
                 <div>
@@ -437,14 +465,23 @@ Certified Scrum Master (CSM) | 2021`;
           {/* Left Column */}
           <div className="lg:col-span-2 space-y-8">
             {/* Upload Section */}
-            <Card className="glass-card border-0 shimmer">
-              <CardContent className="p-6">
-                <h2 className="text-xl font-semibold text-grey-900 mb-6 flex items-center">
-                  <Upload className="text-primary-600 mr-3 h-5 w-5" />
-                  Upload Your Resume
-                </h2>
+            <div
+              ref={uploadRef}
+              className={`transition-all duration-700 ${uploadVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+            >
+              <Card className="glass-card border-0 card-3d overflow-hidden">
+                <CardContent className="p-6 relative">
+                  {/* Premium gradient accent */}
+                  <div className="absolute top-0 left-0 w-48 h-48 bg-gradient-to-br from-primary-500/5 to-purple-500/5 rounded-full -translate-y-1/2 -translate-x-1/2 blur-3xl" />
 
-                <FileUpload />
+                  <h2 className="text-xl font-display font-bold text-grey-900 mb-6 flex items-center relative z-10">
+                    <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center mr-3 shadow-lg">
+                      <Upload className="text-white h-5 w-5" />
+                    </div>
+                    Upload Your Resume
+                  </h2>
+
+                  <FileUpload />
 
                 <div className="mt-6 flex justify-center">
                   <span className="text-grey-500 text-sm">or</span>
@@ -461,15 +498,18 @@ Certified Scrum Master (CSM) | 2021`;
                     Try Demo Resume
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
 
             {/* Current Resume Status */}
             {latestResume && (
-              <Card className="glass-card border-0 shimmer">
+              <Card className="glass-card border-0 card-3d">
                 <CardContent className="p-6">
-                  <h2 className="text-xl font-semibold text-grey-900 mb-6 flex items-center">
-                    <UserCircle className="text-primary-600 mr-3 h-5 w-5" />
+                  <h2 className="text-xl font-display font-bold text-grey-900 mb-6 flex items-center">
+                    <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center mr-3 shadow-lg">
+                      <UserCircle className="text-white h-5 w-5" />
+                    </div>
                     Your Profile Status
                   </h2>
 
@@ -523,10 +563,12 @@ Certified Scrum Master (CSM) | 2021`;
             )}
 
             {/* Recent Activity */}
-            <Card className="glass-card border-0 shimmer">
+            <Card className="glass-card border-0 card-3d">
               <CardContent className="p-6">
-                <h2 className="text-xl font-semibold text-grey-900 mb-6 flex items-center">
-                  <Clock className="text-primary-600 mr-3 h-5 w-5" />
+                <h2 className="text-xl font-display font-bold text-grey-900 mb-6 flex items-center">
+                  <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center mr-3 shadow-lg">
+                    <Clock className="text-white h-5 w-5" />
+                  </div>
                   Recent Activity
                 </h2>
 
@@ -570,37 +612,47 @@ Certified Scrum Master (CSM) | 2021`;
             {latestResume && <SkillProfile resume={latestResume} />}
 
             {/* Quick Stats */}
-            <Card className="glass-card border-0 shimmer">
-              <CardContent className="p-6">
-                <h2 className="text-xl font-semibold text-grey-900 mb-6 flex items-center">
-                  <TrendingUp className="text-primary-600 mr-3 h-5 w-5" />
-                  Quick Stats
-                </h2>
+            <div
+              ref={statsRef}
+              className={`transition-all duration-700 ${statsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+            >
+              <Card className="glass-card border-0 card-3d overflow-hidden">
+                <CardContent className="p-6 relative">
+                  {/* Premium gradient accent */}
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary-500/10 to-purple-500/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
 
-                <div className="space-y-6">
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-primary-600 mb-1">
-                      {stats?.resumesCreated || 0}
+                  <h2 className="text-xl font-display font-bold text-grey-900 mb-6 flex items-center relative z-10">
+                    <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center mr-3 shadow-lg">
+                      <TrendingUp className="text-white h-5 w-5" />
                     </div>
-                    <div className="text-sm text-grey-600">Resumes Created</div>
-                  </div>
+                    Quick Stats
+                  </h2>
 
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-success-600 mb-1">
-                      {stats?.averageAtsScore || 0}%
+                  <div className="space-y-6 relative z-10">
+                    <div className="text-center p-4 bg-gradient-to-br from-primary-50 to-primary-100/50 rounded-xl">
+                      <div className="text-4xl font-display font-bold bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent mb-1">
+                        {stats?.resumesCreated || 0}
+                      </div>
+                      <div className="text-sm text-grey-600 font-medium">Resumes Created</div>
                     </div>
-                    <div className="text-sm text-grey-600">Avg ATS Score</div>
-                  </div>
 
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-orange-600 mb-1">
-                      {stats?.roleMatches || 0}
+                    <div className="text-center p-4 bg-gradient-to-br from-success-50 to-success-100/50 rounded-xl">
+                      <div className="text-4xl font-display font-bold bg-gradient-to-r from-success-600 to-success-700 bg-clip-text text-transparent mb-1">
+                        {stats?.averageAtsScore || 0}%
+                      </div>
+                      <div className="text-sm text-grey-600 font-medium">Avg ATS Score</div>
                     </div>
-                    <div className="text-sm text-grey-600">Role Matches Found</div>
+
+                    <div className="text-center p-4 bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-xl">
+                      <div className="text-4xl font-display font-bold bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent mb-1">
+                        {stats?.roleMatches || 0}
+                      </div>
+                      <div className="text-sm text-grey-600 font-medium">Role Matches Found</div>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       </div>
