@@ -1,9 +1,10 @@
 import mammoth from 'mammoth';
+import { z } from 'zod';
 import { db } from '../db';
 import { resumes, SkillProfile } from '../../shared/schema';
 import { eq } from 'drizzle-orm';
 import { extractParsedData } from './parserUtils';
-import { getOpenAIClient } from './openai';
+import { getOpenAIClient, runStructuredChat } from './openai';
 import { logger } from '../logger';
 
 /**

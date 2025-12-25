@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
 import { z } from 'zod';
+import { getConfig } from '../config';
 
 let client: OpenAI | null = null;
 
