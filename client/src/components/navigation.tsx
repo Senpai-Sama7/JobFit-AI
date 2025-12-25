@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell, FileText, ChevronDown, User, Settings, LogOut, Palette } from "lucide-react";
+import { Bell, FileText, ChevronDown, User, Settings, LogOut, Palette, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { useScrollPosition } from "@/hooks/use-scroll-reveal";
 import type { Activity } from "@shared/schema";
 
 export default function Navigation() {
@@ -23,6 +24,7 @@ export default function Navigation() {
     emailUpdates: true,
   });
   const { toast } = useToast();
+  const { isScrolled } = useScrollPosition();
 
   const { data: activities } = useQuery<Activity[]>({
     queryKey: ["/api/activities"],
@@ -54,7 +56,7 @@ export default function Navigation() {
 
   return (
     <>
-    <nav className="glass-nav sticky top-0 z-50">
+    <nav className={`glass-nav sticky top-0 z-50 transition-all duration-300 ${isScrolled ? 'scrolled shadow-premium' : ''}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-4">
