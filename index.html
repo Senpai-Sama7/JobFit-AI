@@ -121,10 +121,13 @@
             font-size: 3.5rem;
             font-weight: 800;
             margin-bottom: 20px;
+            color: #e0e7ff; /* Fallback for browsers that don't support gradient text */
             background: linear-gradient(to right, #fff, #e0e7ff);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            /* The text-fill-color property is not standard, but widely supported.
+               The color property above acts as a fallback. */
         }
 
         .subtitle {
