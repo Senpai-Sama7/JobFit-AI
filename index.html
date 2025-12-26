@@ -369,18 +369,23 @@
     </div>
 
     <script>
-        // Auto-redirect after 3 seconds (optional - comment out if not desired)
-        let autoRedirectTimer;
+        let launchRedirectTimer;
 
-        // Launch app button
         document.getElementById('launchApp').addEventListener('click', function(e) {
             e.preventDefault();
+
+            if (this.getAttribute('aria-disabled') === 'true') return;
+
+            this.setAttribute('aria-disabled', 'true');
+            this.style.pointerEvents = 'none';
+
             const loader = document.getElementById('loader');
-            loader.hidden = false;
             loader.classList.add('active');
 
+            if (launchRedirectTimer) clearTimeout(launchRedirectTimer);
+
             // Simulate loading for better UX
-            setTimeout(() => {
+            launchRedirectTimer = setTimeout(() => {
                 window.location.href = './docs/index.html';
             }, 800);
         });
