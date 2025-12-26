@@ -397,7 +397,7 @@
         */
 
         // Detect if coming from service worker (PWA)
-        if ((navigator.standalone || window.matchMedia('(display-mode: standalone)').matches) && !window.location.pathname.includes('docs/index.html')) {
+        if ((navigator.standalone || window.matchMedia('(display-mode: standalone)').matches) && !window.location.pathname.includes('/docs/')) {
             window.location.href = './docs/index.html';
         }
 
