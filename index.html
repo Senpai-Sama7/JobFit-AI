@@ -375,6 +375,7 @@
         document.getElementById('launchApp').addEventListener('click', function(e) {
             e.preventDefault();
             const loader = document.getElementById('loader');
+            loader.hidden = false;
             loader.classList.add('active');
 
             // Simulate loading for better UX
