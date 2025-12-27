@@ -2,79 +2,437 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5, user-scalable=yes" />
-
-    <!-- Primary Meta Tags -->
-    <title>JobFit AI - Intelligent Resume Optimization & ATS Scoring</title>
-    <meta name="title" content="JobFit AI - Intelligent Resume Optimization & ATS Scoring" />
-    <meta name="description" content="Optimize your resume with AI-powered analysis, ATS scoring, and personalized job recommendations. Get hired faster with JobFit AI's intelligent resume builder and tailoring tools." />
-    <meta name="keywords" content="resume optimization, ATS score, AI resume builder, job search, career tools, resume analyzer, job fit, resume tailoring" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JobFit AI — Career OS</title>
+    <meta
+      name="description"
+      content="JobFit AI delivers ATS scoring, resume tailoring, interview prep, and pipeline tracking in a single interactive experience."
+    />
     <meta name="author" content="JobFit AI" />
-    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#09090b" />
 
-    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://senpai-sama7.github.io/JobFit-AI/" />
-    <meta property="og:title" content="JobFit AI - Intelligent Resume Optimization" />
-    <meta property="og:description" content="Optimize your resume with AI-powered analysis, ATS scoring, and personalized job recommendations." />
-    <meta property="og:image" content="/jobfit-ai_1751931220341.png" />
+    <meta property="og:title" content="JobFit AI — Career OS" />
+    <meta
+      property="og:description"
+      content="Explore ATS scoring, resume tailoring, interview prep, and pipeline tracking in a live, interactive experience."
+    />
+    <meta property="og:image" content="jobfit-ai_1751931220341.png" />
 
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content="https://senpai-sama7.github.io/JobFit-AI/" />
-    <meta property="twitter:title" content="JobFit AI - Intelligent Resume Optimization" />
-    <meta property="twitter:description" content="Optimize your resume with AI-powered analysis, ATS scoring, and personalized job recommendations." />
-    <meta property="twitter:image" content="/jobfit-ai_1751931220341.png" />
-
-    <!-- PWA Meta Tags -->
-    <meta name="application-name" content="JobFit AI" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="JobFit AI" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="theme-color" content="#6366f1" />
-
-    <!-- Favicon and Icons -->
-    <link rel="icon" type="image/png" sizes="32x32" href="/JobFit-AI/jobfit-ai_1751931220341.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/JobFit-AI/jobfit-ai_1751931220341.png" />
-    <link rel="apple-touch-icon" href="/JobFit-AI/jobfit-ai_1751931220341.png" />
-    <link rel="manifest" href="/JobFit-AI/manifest.json" />
-
-    <!-- Performance & Security -->
-    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
-
-    <!-- Structured Data for SEO -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebApplication",
-      "name": "JobFit AI",
-      "description": "AI-powered resume optimization and ATS scoring platform",
-      "url": "https://senpai-sama7.github.io/JobFit-AI/",
-      "applicationCategory": "BusinessApplication",
-      "operatingSystem": "Any",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "USD"
+    <link rel="icon" type="image/png" href="jobfit-ai_1751931220341.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Archivo:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #09090b;
+        --ink: #f8fafc;
+        --muted: #cbd5f5;
+        --accent: #38bdf8;
+        --accent-strong: #f472b6;
+        --border: rgba(248, 250, 252, 0.16);
+        --glass: rgba(15, 23, 42, 0.5);
+        --shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
       }
-    }
-    </script>
-    <script type="module" crossorigin src="/JobFit-AI/assets/js/index-Iy7fL41d.js"></script>
-    <link rel="modulepreload" crossorigin href="/JobFit-AI/assets/js/vendor-react-aSbp3DHJ.js">
-    <link rel="modulepreload" crossorigin href="/JobFit-AI/assets/js/vendor-query-PM7NMm2A.js">
-    <link rel="modulepreload" crossorigin href="/JobFit-AI/assets/js/vendor-ui-CRMstztG.js">
-    <link rel="modulepreload" crossorigin href="/JobFit-AI/assets/js/vendor-utils-CxF3-qay.js">
-    <link rel="stylesheet" crossorigin href="/JobFit-AI/assets/index-Cga9PXU0.css">
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Archivo", system-ui, sans-serif;
+        background: var(--bg);
+        color: var(--ink);
+        line-height: 1.6;
+        overflow-x: hidden;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .container {
+        width: min(1200px, 92%);
+        margin: 0 auto;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      header {
+        border-bottom: 3px solid var(--ink);
+        background: var(--bg);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+
+      .nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 0;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-family: "Space Grotesk", sans-serif;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .logo-mark {
+        width: 40px;
+        height: 40px;
+        border: 3px solid var(--ink);
+        display: grid;
+        place-items: center;
+        font-weight: 700;
+      }
+
+      nav ul {
+        list-style: none;
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.08em;
+      }
+
+      .cta {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .btn {
+        padding: 10px 18px;
+        border: 2px solid var(--ink);
+        background: var(--ink);
+        color: var(--bg);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        cursor: pointer;
+      }
+
+      .btn.ghost {
+        background: transparent;
+        color: var(--ink);
+      }
+
+      .story {
+        position: relative;
+      }
+
+      .story-panel {
+        position: relative;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 120px 0 80px;
+        overflow: hidden;
+      }
+
+      .story-panel::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.2), transparent 60%),
+          radial-gradient(circle at 80% 80%, rgba(244, 114, 182, 0.2), transparent 60%);
+        opacity: calc(0.25 + var(--progress, 0) * 0.5);
+        pointer-events: none;
+      }
+
+      .panel-content {
+        position: relative;
+        z-index: 2;
+        max-width: 720px;
+      }
+
+      .panel-content h1,
+      .panel-content h2 {
+        font-family: "Space Grotesk", sans-serif;
+        margin-bottom: 16px;
+      }
+
+      .panel-content p {
+        color: var(--muted);
+        margin-bottom: 18px;
+      }
+
+      .panel-card {
+        background: var(--glass);
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
+        border-radius: 16px;
+        padding: 24px;
+        display: grid;
+        gap: 16px;
+      }
+
+      .panel-grid {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      }
+
+      .panel-tile {
+        border: 2px solid var(--ink);
+        padding: 14px;
+        background: rgba(248, 250, 252, 0.04);
+      }
+
+      .parallax-layer {
+        position: absolute;
+        inset: auto;
+        width: 280px;
+        height: 280px;
+        border-radius: 18px;
+        background: rgba(15, 23, 42, 0.8);
+        border: 2px solid var(--border);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(18px);
+      }
+
+      .layer-top {
+        top: 12%;
+        right: 12%;
+      }
+
+      .layer-bottom {
+        bottom: 12%;
+        left: 10%;
+      }
+
+      .mask {
+        position: absolute;
+        inset: 0;
+        background: rgba(8, 10, 20, 0.5);
+        clip-path: circle(calc(20% + var(--progress, 0) * 45%) at 50% 50%);
+        transition: clip-path 0.2s ease;
+        pointer-events: none;
+      }
+
+      .scroll-hint {
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        font-size: 0.75rem;
+      }
+
+      footer {
+        border-top: 3px solid var(--ink);
+        padding: 40px 0 60px;
+      }
+
+      @media (max-width: 720px) {
+        .cta {
+          width: 100%;
+        }
+
+        .parallax-layer {
+          width: 200px;
+          height: 200px;
+        }
+      }
+    </style>
   </head>
   <body>
-    <noscript>
-      <div style="text-align: center; padding: 50px; font-family: sans-serif;">
-        <h1>JavaScript Required</h1>
-        <p>JobFit AI requires JavaScript to run. Please enable JavaScript in your browser settings.</p>
+    <header>
+      <div class="container nav">
+        <div class="logo">
+          <div class="logo-mark">JF</div>
+          JobFit AI
+        </div>
+        <nav>
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="platform.html">Platform</a></li>
+            <li><a href="workspace.html">Workspace</a></li>
+            <li><a href="pricing.html">Pricing</a></li>
+          </ul>
+        </nav>
+        <div class="cta">
+          <a class="btn ghost" href="workspace.html">Launch Demo</a>
+          <a class="btn" href="pricing.html">Start Free</a>
+        </div>
       </div>
-    </noscript>
-    <div id="root"></div>
+    </header>
+
+    <main class="story" id="story">
+      <section class="story-panel" data-panel>
+        <div class="parallax-layer layer-top" data-speed="0.4"></div>
+        <div class="parallax-layer layer-bottom" data-speed="-0.3"></div>
+        <div class="mask"></div>
+        <div class="container panel-content">
+          <span class="scroll-hint">Scroll to explore</span>
+          <h1>JobFit AI brings ATS scoring, resume tailoring, and pipeline control into one workspace.</h1>
+          <p>
+            Experience the core product capabilities as you move through a guided story. Each section reveals a real,
+            working capability you can access immediately.
+          </p>
+          <div class="panel-grid">
+            <div class="panel-tile">
+              <strong>Live ATS scoring</strong>
+              <p class="muted">Detect keyword gaps and match strength instantly.</p>
+            </div>
+            <div class="panel-tile">
+              <strong>Resume tailoring</strong>
+              <p class="muted">Generate bullets aligned to each target role.</p>
+            </div>
+            <div class="panel-tile">
+              <strong>Pipeline tracking</strong>
+              <p class="muted">Track applications, stages, and follow-ups.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="story-panel" data-panel>
+        <div class="parallax-layer layer-top" data-speed="0.5"></div>
+        <div class="parallax-layer layer-bottom" data-speed="-0.2"></div>
+        <div class="mask"></div>
+        <div class="container panel-content">
+          <h2>ATS scoring you can trust.</h2>
+          <p>
+            Compare your resume against real job descriptions, see match percentages, and surface missing skills before you
+            apply.
+          </p>
+          <div class="panel-card">
+            <strong>ATS Analyzer Features</strong>
+            <ul class="muted" style="display: grid; gap: 8px; list-style: none;">
+              <li>Instant keyword extraction</li>
+              <li>Gap analysis and skill coverage</li>
+              <li>Role-aligned fit score</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="story-panel" data-panel>
+        <div class="parallax-layer layer-top" data-speed="0.35"></div>
+        <div class="parallax-layer layer-bottom" data-speed="-0.4"></div>
+        <div class="mask"></div>
+        <div class="container panel-content">
+          <h2>Resume narratives that map to outcomes.</h2>
+          <p>
+            Generate role-specific bullet points, highlight measurable impact, and keep your resume aligned with current
+            hiring signals.
+          </p>
+          <div class="panel-card">
+            <strong>Resume Studio</strong>
+            <div class="panel-grid">
+              <div class="panel-tile">
+                Impact statements tied to metrics
+              </div>
+              <div class="panel-tile">
+                Role-specific skills and tools
+              </div>
+              <div class="panel-tile">
+                Achievement-driven storytelling
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="story-panel" data-panel>
+        <div class="parallax-layer layer-top" data-speed="0.45"></div>
+        <div class="parallax-layer layer-bottom" data-speed="-0.25"></div>
+        <div class="mask"></div>
+        <div class="container panel-content">
+          <h2>Track momentum across the pipeline.</h2>
+          <p>
+            Capture applications, stages, and outcomes in one place so you always know what to follow up on next.
+          </p>
+          <div class="panel-card">
+            <strong>Pipeline Command</strong>
+            <ul class="muted" style="display: grid; gap: 8px; list-style: none;">
+              <li>Custom stage tracking</li>
+              <li>Interview prep reminders</li>
+              <li>Offer comparison notes</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="story-panel" data-panel>
+        <div class="parallax-layer layer-top" data-speed="0.4"></div>
+        <div class="parallax-layer layer-bottom" data-speed="-0.3"></div>
+        <div class="mask"></div>
+        <div class="container panel-content">
+          <h2>Interview prep that adapts to each role.</h2>
+          <p>
+            Build tailored prep kits, question sets, and leadership narratives tied to role competencies and hiring goals.
+          </p>
+          <div class="panel-card">
+            <strong>Interview Toolkit</strong>
+            <div class="panel-grid">
+              <div class="panel-tile">Role-specific questions</div>
+              <div class="panel-tile">Behavioral story prompts</div>
+              <div class="panel-tile">First-90-day planning</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="story-panel" data-panel>
+        <div class="parallax-layer layer-top" data-speed="0.5"></div>
+        <div class="parallax-layer layer-bottom" data-speed="-0.2"></div>
+        <div class="mask"></div>
+        <div class="container panel-content">
+          <h2>Go deeper in the live workspace.</h2>
+          <p>Launch the interactive tools, explore the platform breakdown, and review pricing.</p>
+          <div class="panel-grid">
+            <a class="btn" href="workspace.html">Open Workspace</a>
+            <a class="btn ghost" href="platform.html">Platform Overview</a>
+            <a class="btn ghost" href="pricing.html">Pricing & Plans</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container">
+        <p class="muted">Need a working demo? Jump to the <a href="workspace.html">workspace</a>.</p>
+      </div>
+    </footer>
+
+    <script>
+      const panels = document.querySelectorAll("[data-panel]");
+      const animatePanels = () => {
+        const viewport = window.innerHeight;
+        panels.forEach((panel) => {
+          const rect = panel.getBoundingClientRect();
+          const total = rect.height + viewport;
+          const progress = Math.min(1, Math.max(0, (viewport - rect.top) / total));
+          panel.style.setProperty("--progress", progress.toFixed(3));
+          panel.querySelectorAll("[data-speed]").forEach((layer) => {
+            const speed = parseFloat(layer.dataset.speed) || 0;
+            const offset = (progress - 0.5) * speed * 180;
+            layer.style.transform = `translateY(${offset}px)`;
+          });
+        });
+      };
+
+      window.addEventListener("scroll", () => window.requestAnimationFrame(animatePanels));
+      window.addEventListener("resize", animatePanels);
+      animatePanels();
+    </script>
   </body>
 </html>

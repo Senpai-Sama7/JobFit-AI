@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JobFit AI — Platform</title>
+    <meta
+      name="description"
+      content="Explore the JobFit AI platform: ATS scoring, resume optimization, interview prep, and pipeline insights."
+    />
+    <meta name="theme-color" content="#09090b" />
+    <link rel="icon" type="image/png" href="jobfit-ai_1751931220341.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Archivo:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #09090b;
+        --ink: #f8fafc;
+        --muted: #cbd5f5;
+        --accent: #38bdf8;
+        --accent-strong: #f472b6;
+        --border: rgba(248, 250, 252, 0.16);
+        --glass: rgba(15, 23, 42, 0.5);
+        --shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Archivo", system-ui, sans-serif;
+        background: radial-gradient(circle at top right, rgba(244, 114, 182, 0.2), transparent 55%),
+          radial-gradient(circle at bottom left, rgba(56, 189, 248, 0.2), transparent 60%),
+          var(--bg);
+        color: var(--ink);
+        line-height: 1.6;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .container {
+        width: min(1200px, 92%);
+        margin: 0 auto;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      header {
+        border-bottom: 3px solid var(--ink);
+        background: var(--bg);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+
+      .nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 0;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-family: "Space Grotesk", sans-serif;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .logo-mark {
+        width: 40px;
+        height: 40px;
+        border: 3px solid var(--ink);
+        display: grid;
+        place-items: center;
+        font-weight: 700;
+      }
+
+      nav ul {
+        list-style: none;
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.08em;
+      }
+
+      .btn {
+        padding: 10px 18px;
+        border: 2px solid var(--ink);
+        background: var(--ink);
+        color: var(--bg);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .btn.ghost {
+        background: transparent;
+        color: var(--ink);
+      }
+
+      h1,
+      h2,
+      h3 {
+        font-family: "Space Grotesk", sans-serif;
+      }
+
+      .hero {
+        padding: 70px 0 40px;
+      }
+
+      .hero-grid {
+        display: grid;
+        gap: 32px;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      }
+
+      .glass {
+        background: var(--glass);
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
+        border-radius: 16px;
+        padding: 24px;
+        backdrop-filter: blur(18px);
+      }
+
+      .grid {
+        display: grid;
+        gap: 24px;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      }
+
+      .tile {
+        border: 2px solid var(--ink);
+        padding: 22px;
+        background: rgba(248, 250, 252, 0.04);
+      }
+
+      section {
+        padding: 60px 0;
+      }
+
+      .timeline {
+        display: grid;
+        gap: 16px;
+      }
+
+      .timeline-item {
+        border-left: 3px solid var(--accent);
+        padding-left: 16px;
+      }
+
+      footer {
+        border-top: 3px solid var(--ink);
+        padding: 40px 0 60px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="container nav">
+        <div class="logo">
+          <div class="logo-mark">JF</div>
+          JobFit AI
+        </div>
+        <nav>
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="platform.html">Platform</a></li>
+            <li><a href="workspace.html">Workspace</a></li>
+            <li><a href="pricing.html">Pricing</a></li>
+          </ul>
+        </nav>
+        <div class="cta">
+          <a class="btn ghost" href="workspace.html">Launch Demo</a>
+          <a class="btn" href="pricing.html">Start Free</a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container hero-grid">
+          <div>
+            <h1>Platform architecture built for modern hiring velocity.</h1>
+            <p class="muted">
+              From ATS scoring to interview prep, JobFit AI keeps every career artifact in one place with a unified
+              workspace experience.
+            </p>
+          </div>
+          <div class="glass">
+            <h3>Core Modules</h3>
+            <div class="timeline">
+              <div class="timeline-item">
+                <strong>ATS Analyzer</strong>
+                <p class="muted">Live keyword diagnostics with match scoring and missing skill detection.</p>
+              </div>
+              <div class="timeline-item">
+                <strong>Resume Studio</strong>
+                <p class="muted">Role-specific bullet generation, narrative revisions, and impact highlighting.</p>
+              </div>
+              <div class="timeline-item">
+                <strong>Pipeline Command</strong>
+                <p class="muted">Track outreach, interviews, and offer stages with a unified pipeline view.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="container">
+          <h2>Feature clarity with real-time context.</h2>
+          <p class="muted">Every feature is presented in a structured grid so you always know your next move.</p>
+          <div class="grid" style="margin-top: 24px;">
+            <div class="tile">
+              <h3>Dynamic Skill Map</h3>
+              <p class="muted">Surface trending skills and gaps in seconds.</p>
+            </div>
+            <div class="tile">
+              <h3>Recruiter Signals</h3>
+              <p class="muted">Track response rate, follow-up velocity, and outreach success.</p>
+            </div>
+            <div class="tile">
+              <h3>Executive Narratives</h3>
+              <p class="muted">Craft leadership stories with quantified outcomes.</p>
+            </div>
+            <div class="tile">
+              <h3>Interview Intelligence</h3>
+              <p class="muted">Build prep kits tailored to each company and role.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container">
+        <p class="muted">Ready for the live experience? Head to the <a href="workspace.html">workspace</a>.</p>
+      </div>
+    </footer>
+  </body>
+</html>
