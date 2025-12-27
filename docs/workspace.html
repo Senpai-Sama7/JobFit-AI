@@ -510,10 +510,15 @@
           card.className = "tracker-card";
 
           const left = document.createElement("div");
-          left.innerHTML = `
-            <strong>${item.title}</strong><br />
-            <span class="muted">${item.company} · ${item.date || "No date"}</span>
-          `;
+          left.textContent = "";
+          const titleEl = document.createElement("strong");
+          titleEl.textContent = item.title;
+          left.appendChild(titleEl);
+          left.appendChild(document.createElement("br"));
+          const detail = document.createElement("span");
+          detail.className = "muted";
+          detail.textContent = `${item.company} · ${item.date || "No date"}`;
+          left.appendChild(detail);
 
           const badge = document.createElement("span");
           badge.className = "badge";
