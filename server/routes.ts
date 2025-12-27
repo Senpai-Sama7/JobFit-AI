@@ -270,7 +270,7 @@ router.post('/api/auth/logout', (req: Request, res: Response) => {
       res.json({ message: 'Logged out successfully' });
     });
   });
-}));
+});
 
 // GET /api/auth/session - Check if user is logged in
 router.get('/api/auth/session', (req: Request, res: Response) => {
