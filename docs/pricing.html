@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JobFit AI — Pricing</title>
+    <meta name="description" content="JobFit AI pricing for individuals, teams, and enterprise talent operations." />
+    <meta name="theme-color" content="#09090b" />
+    <link rel="icon" type="image/png" href="jobfit-ai_1751931220341.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Archivo:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #09090b;
+        --ink: #f8fafc;
+        --muted: #cbd5f5;
+        --accent: #38bdf8;
+        --accent-strong: #f472b6;
+        --border: rgba(248, 250, 252, 0.16);
+        --glass: rgba(15, 23, 42, 0.5);
+        --shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Archivo", system-ui, sans-serif;
+        background: radial-gradient(circle at top right, rgba(56, 189, 248, 0.2), transparent 60%),
+          radial-gradient(circle at bottom left, rgba(244, 114, 182, 0.2), transparent 60%),
+          var(--bg);
+        color: var(--ink);
+        line-height: 1.6;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .container {
+        width: min(1200px, 92%);
+        margin: 0 auto;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      header {
+        border-bottom: 3px solid var(--ink);
+        background: var(--bg);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+
+      .nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 0;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-family: "Space Grotesk", sans-serif;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .logo-mark {
+        width: 40px;
+        height: 40px;
+        border: 3px solid var(--ink);
+        display: grid;
+        place-items: center;
+        font-weight: 700;
+      }
+
+      nav ul {
+        list-style: none;
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.08em;
+      }
+
+      .btn {
+        padding: 10px 18px;
+        border: 2px solid var(--ink);
+        background: var(--ink);
+        color: var(--bg);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .btn.ghost {
+        background: transparent;
+        color: var(--ink);
+      }
+
+      h1,
+      h2,
+      h3 {
+        font-family: "Space Grotesk", sans-serif;
+      }
+
+      section {
+        padding: 60px 0;
+      }
+
+      .pricing-grid {
+        display: grid;
+        gap: 24px;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      }
+
+      .card {
+        border: 2px solid var(--ink);
+        padding: 24px;
+        background: rgba(248, 250, 252, 0.04);
+      }
+
+      .card.featured {
+        background: var(--glass);
+        border: 2px solid var(--accent);
+        box-shadow: var(--shadow);
+      }
+
+      ul {
+        list-style: none;
+        margin-top: 16px;
+        display: grid;
+        gap: 8px;
+        color: var(--muted);
+      }
+
+      footer {
+        border-top: 3px solid var(--ink);
+        padding: 40px 0 60px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="container nav">
+        <div class="logo">
+          <div class="logo-mark">JF</div>
+          JobFit AI
+        </div>
+        <nav>
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="platform.html">Platform</a></li>
+            <li><a href="workspace.html">Workspace</a></li>
+            <li><a href="pricing.html">Pricing</a></li>
+          </ul>
+        </nav>
+        <div class="cta">
+          <a class="btn ghost" href="workspace.html">Launch Demo</a>
+          <a class="btn" href="#">Contact Sales</a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section>
+        <div class="container">
+          <h1>Pricing built for modern talent teams.</h1>
+          <p class="muted">Choose a plan that matches your hiring velocity and career stage.</p>
+        </div>
+      </section>
+
+      <section>
+        <div class="container pricing-grid">
+          <div class="card">
+            <h3>Starter</h3>
+            <p class="muted">$0 / month</p>
+            <ul>
+              <li>ATS scan + keyword highlights</li>
+              <li>1 resume profile</li>
+              <li>Basic job tracker</li>
+            </ul>
+          </div>
+          <div class="card featured">
+            <h3>Pro</h3>
+            <p class="muted">$19 / month</p>
+            <ul>
+              <li>Unlimited resume tailoring</li>
+              <li>Interview prep kits</li>
+              <li>Advanced pipeline insights</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Teams</h3>
+            <p class="muted">$49 / month</p>
+            <ul>
+              <li>Shared talent dashboards</li>
+              <li>Coaching playbooks</li>
+              <li>Role benchmarking</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Enterprise</h3>
+            <p class="muted">Custom</p>
+            <ul>
+              <li>SLAs + dedicated support</li>
+              <li>Custom analytics pipelines</li>
+              <li>Secure SSO + audit logs</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container">
+        <p class="muted">Need the live demo? Jump into the <a href="workspace.html">workspace</a>.</p>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JobFit AI — Workspace</title>
+    <meta
+      name="description"
+      content="Interactive JobFit AI workspace with ATS scoring, resume bullets, interview prep, and job tracking — all running in-browser."
+    />
+    <meta name="theme-color" content="#09090b" />
+    <link rel="icon" type="image/png" href="jobfit-ai_1751931220341.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Archivo:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #09090b;
+        --ink: #f8fafc;
+        --muted: #cbd5f5;
+        --accent: #38bdf8;
+        --accent-strong: #f472b6;
+        --border: rgba(248, 250, 252, 0.16);
+        --glass: rgba(15, 23, 42, 0.6);
+        --shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Archivo", system-ui, sans-serif;
+        background: radial-gradient(circle at top right, rgba(56, 189, 248, 0.2), transparent 60%),
+          radial-gradient(circle at bottom left, rgba(244, 114, 182, 0.18), transparent 65%),
+          var(--bg);
+        color: var(--ink);
+        line-height: 1.6;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .container {
+        width: min(1200px, 92%);
+        margin: 0 auto;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      header {
+        border-bottom: 3px solid var(--ink);
+        background: var(--bg);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+
+      .nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 0;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-family: "Space Grotesk", sans-serif;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .logo-mark {
+        width: 40px;
+        height: 40px;
+        border: 3px solid var(--ink);
+        display: grid;
+        place-items: center;
+        font-weight: 700;
+      }
+
+      nav ul {
+        list-style: none;
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.08em;
+      }
+
+      .btn {
+        padding: 10px 18px;
+        border: 2px solid var(--ink);
+        background: var(--ink);
+        color: var(--bg);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        cursor: pointer;
+      }
+
+      .btn.ghost {
+        background: transparent;
+        color: var(--ink);
+      }
+
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: "Space Grotesk", sans-serif;
+      }
+
+      section {
+        padding: 60px 0;
+      }
+
+      .hero {
+        padding: 60px 0 30px;
+      }
+
+      .hero p {
+        color: var(--muted);
+        margin-top: 12px;
+      }
+
+      .grid {
+        display: grid;
+        gap: 24px;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      }
+
+      .glass {
+        background: var(--glass);
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
+        border-radius: 16px;
+        padding: 22px;
+        backdrop-filter: blur(18px);
+      }
+
+      label {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      textarea,
+      input,
+      select {
+        width: 100%;
+        padding: 12px 14px;
+        border-radius: 8px;
+        border: 2px solid var(--ink);
+        background: rgba(8, 10, 20, 0.8);
+        color: var(--ink);
+      }
+
+      textarea {
+        min-height: 150px;
+        resize: vertical;
+      }
+
+      .score-ring {
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        background: conic-gradient(var(--accent) var(--score, 40%), rgba(56, 189, 248, 0.12) 0);
+        display: grid;
+        place-items: center;
+        margin: 16px auto;
+        border: 3px solid var(--ink);
+      }
+
+      .score-ring span {
+        font-size: 1.6rem;
+        font-weight: 700;
+      }
+
+      .keyword-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .keyword {
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        background: rgba(56, 189, 248, 0.2);
+      }
+
+      .keyword.missing {
+        background: rgba(244, 114, 182, 0.2);
+      }
+
+      .timeline {
+        display: grid;
+        gap: 12px;
+        margin-top: 14px;
+      }
+
+      .timeline-item {
+        border: 2px solid var(--ink);
+        padding: 12px;
+        background: rgba(248, 250, 252, 0.04);
+      }
+
+      .tracker-card {
+        border: 2px solid var(--ink);
+        padding: 14px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-top: 12px;
+        background: rgba(248, 250, 252, 0.04);
+      }
+
+      .badge {
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        border: 2px solid var(--ink);
+      }
+
+      .remove {
+        border: none;
+        background: none;
+        color: var(--muted);
+        font-weight: 700;
+        cursor: pointer;
+        text-transform: uppercase;
+      }
+
+      footer {
+        border-top: 3px solid var(--ink);
+        padding: 40px 0 60px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="container nav">
+        <div class="logo">
+          <div class="logo-mark">JF</div>
+          JobFit AI
+        </div>
+        <nav>
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="platform.html">Platform</a></li>
+            <li><a href="workspace.html">Workspace</a></li>
+            <li><a href="pricing.html">Pricing</a></li>
+          </ul>
+        </nav>
+        <div class="cta">
+          <a class="btn ghost" href="platform.html">Platform</a>
+          <a class="btn" href="pricing.html">Start Free</a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container">
+          <h1>Live Workspace</h1>
+          <p>
+            This page runs the interactive, in-browser tools: ATS scoring, bullet generation, interview prep, and a local
+            pipeline tracker.
+          </p>
+        </div>
+      </section>
+
+      <section>
+        <div class="container grid">
+          <div class="glass">
+            <h3>ATS Analyzer</h3>
+            <label for="resumeInput" class="muted">Resume text</label>
+            <textarea id="resumeInput" placeholder="Paste resume content..."></textarea>
+            <input type="file" id="resumeFile" accept=".txt" />
+            <label for="jobInput" class="muted">Job description</label>
+            <textarea id="jobInput" placeholder="Paste job description..."></textarea>
+            <button class="btn" id="analyzeBtn" type="button">Analyze ATS Fit</button>
+          </div>
+          <div class="glass">
+            <h3>ATS Fit Score</h3>
+            <div class="score-ring" id="scoreRing" style="--score: 40%">
+              <span id="scoreValue">40%</span>
+            </div>
+            <p class="muted">Based on keyword overlap and role alignment.</p>
+            <div style="margin-top: 12px;">
+              <strong>Matched keywords</strong>
+              <div class="keyword-list" id="matchedKeywords"></div>
+            </div>
+            <div style="margin-top: 12px;">
+              <strong>Missing keywords</strong>
+              <div class="keyword-list" id="missingKeywords"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="container grid">
+          <div class="glass">
+            <h3>Resume Bullet Generator</h3>
+            <input id="roleInput" type="text" placeholder="Target role" />
+            <input id="achievementInput" type="text" placeholder="Key achievement" />
+            <input id="metricInput" type="text" placeholder="Metric or impact" />
+            <button class="btn" id="generateBullets" type="button">Generate Bullet Points</button>
+            <div class="timeline" id="bulletResults"></div>
+          </div>
+          <div class="glass">
+            <h3>Interview Prep Kit</h3>
+            <input id="prepRoleInput" type="text" placeholder="Role for interview prep" />
+            <button class="btn ghost" id="generatePrep" type="button">Generate Prep Kit</button>
+            <div class="timeline" id="prepResults"></div>
+          </div>
+          <div class="glass">
+            <h3>Job Tracker</h3>
+            <input id="companyInput" type="text" placeholder="Company" />
+            <input id="titleInput" type="text" placeholder="Role title" />
+            <select id="stageInput">
+              <option value="Applied">Applied</option>
+              <option value="Screening">Screening</option>
+              <option value="Interview">Interview</option>
+              <option value="Offer">Offer</option>
+            </select>
+            <input id="dateInput" type="date" />
+            <button class="btn" id="addJob" type="button">Add to pipeline</button>
+            <div id="trackerList"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container">
+        <p class="muted">Need pricing? Visit the <a href="pricing.html">pricing page</a>.</p>
+      </div>
+    </footer>
+
+    <script>
+      const resumeInput = document.getElementById("resumeInput");
+      const jobInput = document.getElementById("jobInput");
+      const analyzeBtn = document.getElementById("analyzeBtn");
+      const scoreRing = document.getElementById("scoreRing");
+      const scoreValue = document.getElementById("scoreValue");
+      const matchedKeywords = document.getElementById("matchedKeywords");
+      const missingKeywords = document.getElementById("missingKeywords");
+
+      const stopWords = new Set([
+        "the",
+        "and",
+        "with",
+        "for",
+        "this",
+        "that",
+        "from",
+        "your",
+        "our",
+        "you",
+        "are",
+        "will",
+        "their",
+        "they",
+        "have",
+        "has",
+        "were",
+        "was",
+        "into",
+        "about",
+        "able",
+        "using",
+        "use",
+        "also",
+        "not",
+        "all",
+        "can",
+        "such",
+        "more",
+        "job",
+        "role",
+        "team",
+        "work",
+        "lead",
+        "data"
+      ]);
+
+      const tokenize = (text) =>
+        text
+          .toLowerCase()
+          .replace(/[^a-z0-9+.# ]/g, " ")
+          .split(/\s+/)
+          .filter((word) => word.length > 3 && !stopWords.has(word));
+
+      const unique = (arr) => Array.from(new Set(arr));
+
+      const renderKeywords = (container, words, missing = false) => {
+        container.innerHTML = "";
+        words.slice(0, 18).forEach((word) => {
+          const chip = document.createElement("span");
+          chip.className = missing ? "keyword missing" : "keyword";
+          chip.textContent = word;
+          container.appendChild(chip);
+        });
+        if (!words.length) {
+          container.innerHTML = "<span class=\"muted\">No keywords yet.</span>";
+        }
+      };
+
+      const analyze = () => {
+        const resumeText = resumeInput.value;
+        const jobText = jobInput.value;
+        const jobTokens = unique(tokenize(jobText));
+        const resumeTokens = unique(tokenize(resumeText));
+        const matches = jobTokens.filter((token) => resumeTokens.includes(token));
+        const missing = jobTokens.filter((token) => !resumeTokens.includes(token));
+        const score = jobTokens.length ? Math.round((matches.length / jobTokens.length) * 100) : 40;
+
+        scoreRing.style.setProperty("--score", `${score}%`);
+        scoreValue.textContent = `${score}%`;
+        renderKeywords(matchedKeywords, matches);
+        renderKeywords(missingKeywords, missing, true);
+      };
+
+      analyzeBtn.addEventListener("click", analyze);
+
+      document.getElementById("resumeFile").addEventListener("change", (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          resumeInput.value = e.target.result;
+        };
+        reader.readAsText(file);
+      });
+
+      const bulletResults = document.getElementById("bulletResults");
+      document.getElementById("generateBullets").addEventListener("click", () => {
+        const role = document.getElementById("roleInput").value || "your target role";
+        const achievement = document.getElementById("achievementInput").value || "delivered a high-impact initiative";
+        const metric = document.getElementById("metricInput").value || "measurable business growth";
+
+        const bullets = [
+          `Led ${achievement} as a ${role}, resulting in ${metric}.`,
+          `Partnered cross-functionally to scale ${achievement}, unlocking ${metric} and stronger stakeholder alignment.`,
+          `Designed a repeatable playbook for ${achievement}, improving delivery velocity and ${metric}.`
+        ];
+
+        bulletResults.innerHTML = "";
+        bullets.forEach((bullet) => {
+          const item = document.createElement("div");
+          item.className = "timeline-item";
+          item.textContent = bullet;
+          bulletResults.appendChild(item);
+        });
+      });
+
+      const prepResults = document.getElementById("prepResults");
+      document.getElementById("generatePrep").addEventListener("click", () => {
+        const role = document.getElementById("prepRoleInput").value || "your target role";
+        const questions = [
+          `Walk me through a recent project where you led strategy as a ${role}.`,
+          `How do you prioritize competing requests when acting as a ${role}?`,
+          `Describe a time you used data to influence stakeholders in your ${role} work.`,
+          `What does success look like in the first 90 days for a ${role}?`
+        ];
+
+        prepResults.innerHTML = "";
+        questions.forEach((question) => {
+          const item = document.createElement("div");
+          item.className = "timeline-item";
+          item.textContent = question;
+          prepResults.appendChild(item);
+        });
+      });
+
+      const trackerList = document.getElementById("trackerList");
+      const trackerKey = "jobfit-tracker";
+
+      const renderTracker = (items) => {
+        trackerList.innerHTML = "";
+        if (!items.length) {
+          trackerList.innerHTML = "<p class=\"muted\">No roles yet. Add one to start tracking.</p>";
+          return;
+        }
+        items.forEach((item, index) => {
+          const card = document.createElement("div");
+          card.className = "tracker-card";
+
+          const left = document.createElement("div");
+          left.innerHTML = `
+            <strong>${item.title}</strong><br />
+            <span class="muted">${item.company} · ${item.date || "No date"}</span>
+          `;
+
+          const badge = document.createElement("span");
+          badge.className = "badge";
+          badge.textContent = item.stage;
+
+          const remove = document.createElement("button");
+          remove.className = "remove";
+          remove.textContent = "Remove";
+          remove.addEventListener("click", () => {
+            const next = items.filter((_, i) => i !== index);
+            localStorage.setItem(trackerKey, JSON.stringify(next));
+            renderTracker(next);
+          });
+
+          const right = document.createElement("div");
+          right.style.display = "flex";
+          right.style.gap = "12px";
+          right.style.alignItems = "center";
+          right.appendChild(badge);
+          right.appendChild(remove);
+
+          card.appendChild(left);
+          card.appendChild(right);
+          trackerList.appendChild(card);
+        });
+      };
+
+      const loadTracker = () => {
+        const data = JSON.parse(localStorage.getItem(trackerKey) || "[]");
+        renderTracker(data);
+      };
+
+      document.getElementById("addJob").addEventListener("click", () => {
+        const company = document.getElementById("companyInput").value.trim();
+        const title = document.getElementById("titleInput").value.trim();
+        const stage = document.getElementById("stageInput").value;
+        const date = document.getElementById("dateInput").value;
+
+        if (!company || !title) return;
+
+        const current = JSON.parse(localStorage.getItem(trackerKey) || "[]");
+        current.unshift({ company, title, stage, date });
+        localStorage.setItem(trackerKey, JSON.stringify(current));
+        renderTracker(current);
+
+        document.getElementById("companyInput").value = "";
+        document.getElementById("titleInput").value = "";
+        document.getElementById("dateInput").value = "";
+      });
+
+      loadTracker();
+      analyze();
+    </script>
+  </body>
+</html>
