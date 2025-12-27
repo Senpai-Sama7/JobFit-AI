@@ -1025,6 +1025,9 @@
         reader.onload = (e) => {
           resumeInput.value = e.target.result;
         };
+        reader.onerror = () => {
+          alert("Failed to read file. Please try again.");
+        };
         reader.readAsText(file);
       });
 
