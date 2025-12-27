@@ -1,22 +1,18 @@
-import { useState, useRef, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "wouter";
+import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { useResumes, useOptimizeResume, useDeleteResume } from "@/hooks/use-resume";
-import { useSubscriptionLimits, useCreateSubscription } from "@/hooks/use-subscription";
-import { useScrollReveal, useStaggeredReveal } from "@/hooks/use-scroll-reveal";
-import { GradientMesh } from "@/components/premium-background";
-import SubscriptionModal from "@/components/subscription-modal";
-import Navigation from "@/components/navigation";
+import { useResumes } from "@/hooks/use-resume";
+import { useCreateSubscription } from "@/hooks/use-subscription";
 import { FileUpload } from "@/components/file-upload";
 import RoleRecommendations from "@/components/role-recommendations";
 import SkillProfile from "@/components/skill-profile";
 import TailoringWorkspace from "@/components/tailoring-workspace";
 import OptimizationModal from "@/components/optimization-modal";
 import ResumeBuilder from "@/components/resume-builder";
-import AchievementSystem from "@/components/achievement-system";
-import JobMarketTrends from "@/components/job-market-trends";
-import JobBoardIntegration from "@/components/job-board-integration";
+import SubscriptionModal from "@/components/subscription-modal";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -32,7 +28,25 @@ import {
   CheckCircle,
   Download,
   Lightbulb,
+  Home,
+  Settings,
+  Bell,
+  LogOut,
+  ChevronDown,
+  Crown,
+  Sparkles,
+  ArrowRight,
+  Target,
+  Zap,
 } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import type { Resume, Activity } from "@shared/schema";
 
 interface DashboardStats {
@@ -60,6 +74,19 @@ interface OptimizationData {
   improvements: string[];
 }
 
+const fadeInUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+};
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 },
+  },
+};
+
 export default function Dashboard() {
   const [showManualForm, setShowManualForm] = useState(false);
   const [showTailoringModal, setShowTailoringModal] = useState(false);
@@ -68,20 +95,10 @@ export default function Dashboard() {
   const [optimizationData, setOptimizationData] = useState<OptimizationData | null>(null);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
 
-  // Scroll reveal animations
-  const [heroRef, heroVisible] = useScrollReveal<HTMLDivElement>();
-  const [headerRef, headerVisible] = useScrollReveal<HTMLDivElement>();
-  const [actionsContainerRef, actionsVisible] = useStaggeredReveal(4);
-  const [uploadRef, uploadVisible] = useScrollReveal<HTMLDivElement>();
-  const [statsRef, statsVisible] = useScrollReveal<HTMLDivElement>();
-
-  const subscriptionLimits = useSubscriptionLimits();
   const createSubscription = useCreateSubscription();
-
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  // Get user subscription status
   const { data: user } = useQuery<User>({
     queryKey: ["/api/user"],
     queryFn: async () => {
@@ -90,7 +107,6 @@ export default function Dashboard() {
     },
   });
 
-  // Fetch dashboard data
   const { data: stats } = useQuery<DashboardStats>({
     queryKey: ["/api/dashboard/stats"],
     queryFn: async () => {
@@ -131,7 +147,6 @@ export default function Dashboard() {
       const response = await apiRequest("POST", `/api/resumes/${latestResume.id}/optimize`, {});
       const data = await response.json();
 
-      // Show detailed optimization results
       setOptimizationData({
         currentScore: data.oldScore,
         optimizedScore: data.newScore,
@@ -140,12 +155,10 @@ export default function Dashboard() {
           "Enhanced skills section with industry keywords",
           "Improved experience bullets with quantifiable metrics",
           "Optimized section headers for ATS compatibility",
-          "Added relevant technical skills and certifications",
         ],
       });
       setShowOptimizationModal(true);
 
-      // Refresh data to show new score
       queryClient.invalidateQueries({ queryKey: ["/api/resumes"] });
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/stats"] });
     } catch (error) {
@@ -160,43 +173,36 @@ export default function Dashboard() {
   const handleDemoUpload = async () => {
     const demoResumeContent = `JOHN SMITH
 Senior Software Engineer
-Email: john.smith@email.com
-Phone: (555) 123-4567
-Location: San Francisco, CA
-LinkedIn: linkedin.com/in/johnsmith
+Email: john.smith@email.com | Phone: (555) 123-4567
+Location: San Francisco, CA | LinkedIn: linkedin.com/in/johnsmith
 
 PROFESSIONAL SUMMARY
 Experienced software engineer with 6+ years developing scalable web applications and leading cross-functional teams. Expertise in full-stack development, cloud architecture, and agile methodologies.
 
 TECHNICAL SKILLS
-Programming Languages: JavaScript, TypeScript, Python, Java
+Programming: JavaScript, TypeScript, Python, Java
 Frontend: React, Vue.js, Angular, HTML5, CSS3
 Backend: Node.js, Express, Django, Spring Boot
-Databases: PostgreSQL, MongoDB, Redis, MySQL
-Cloud & DevOps: AWS, Docker, Kubernetes, CI/CD
+Cloud: AWS, Docker, Kubernetes, CI/CD
 
-PROFESSIONAL EXPERIENCE
+EXPERIENCE
 
 Senior Software Engineer | TechFlow Solutions | Jan 2022 - Present
 • Led development of microservices architecture serving 100k+ daily users
 • Implemented automated testing pipeline reducing deployment time by 40%
 • Mentored 3 junior developers and conducted technical interviews
-• Optimized database queries improving application performance by 35%
 
 Software Engineer | StartupCorp | Mar 2020 - Dec 2021
 • Built responsive web applications using React and Node.js
 • Developed RESTful APIs handling 10M+ requests per month
 • Integrated third-party payment systems increasing conversion by 20%
-• Maintained 95% test coverage and participated in code reviews
 
 EDUCATION
 Bachelor of Science in Computer Science
 University of California, Berkeley | 2018
-GPA: 3.7/4.0
 
 CERTIFICATIONS
-AWS Certified Solutions Architect - Associate | 2023
-Certified Scrum Master (CSM) | 2021`;
+AWS Certified Solutions Architect - Associate | 2023`;
 
     try {
       const blob = new Blob([demoResumeContent], { type: "text/plain" });
@@ -206,22 +212,15 @@ Certified Scrum Master (CSM) | 2021`;
 
       toast({
         title: "Demo Upload Started",
-        description: "Processing sample resume to show AI analysis...",
+        description: "Processing sample resume...",
       });
 
       await apiRequest("POST", "/api/resumes/upload", formData);
 
       setTimeout(() => {
         toast({
-          title: "AI Analysis in Progress",
-          description: "Extracting skills, calculating ATS score, and finding role matches...",
-        });
-      }, 1000);
-
-      setTimeout(() => {
-        toast({
           title: "Analysis Complete!",
-          description: "Demo resume processed. Check your dashboard for results.",
+          description: "Demo resume processed. Check your results below.",
         });
 
         queryClient.invalidateQueries({ queryKey: ["/api/resumes"] });
@@ -231,7 +230,7 @@ Certified Scrum Master (CSM) | 2021`;
     } catch (error) {
       toast({
         title: "Demo Failed",
-        description: "Could not process demo resume. Please try uploading your own file.",
+        description: "Could not process demo resume.",
         variant: "destructive",
       });
     }
@@ -241,27 +240,25 @@ Certified Scrum Master (CSM) | 2021`;
     switch (type) {
       case "upload":
       case "created":
-        return <CheckCircle className="h-4 w-4 text-success-600" />;
+        return <CheckCircle className="h-4 w-4 text-[var(--success)]" />;
       case "tailored":
-        return <Download className="h-4 w-4 text-primary-600" />;
       case "exported":
-        return <Download className="h-4 w-4 text-primary-600" />;
+        return <Download className="h-4 w-4 text-[var(--accent-cyan)]" />;
       case "parsed":
       case "optimized":
-        return <Lightbulb className="h-4 w-4 text-orange-600" />;
+        return <Lightbulb className="h-4 w-4 text-[var(--accent-amber)]" />;
       default:
-        return <Clock className="h-4 w-4 text-grey-500" />;
+        return <Clock className="h-4 w-4 text-[var(--ink-subtle)]" />;
     }
   };
 
   const formatTimeAgo = (date: Date | string): string => {
     const now = new Date();
     const diffInSeconds = Math.floor((now.getTime() - new Date(date).getTime()) / 1000);
-
     if (diffInSeconds < 60) return "Just now";
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
-    return `${Math.floor(diffInSeconds / 86400)} days ago`;
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+    return `${Math.floor(diffInSeconds / 86400)}d ago`;
   };
 
   const handleResumeBuilderComplete = (resumeId: number) => {
@@ -271,334 +268,334 @@ Certified Scrum Master (CSM) | 2021`;
     queryClient.invalidateQueries({ queryKey: ["/api/activities"] });
     toast({
       title: "Resume Created",
-      description: "Your resume has been successfully created and is ready for optimization!",
+      description: "Your resume is ready for optimization!",
     });
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-primary-50/30 relative">
-      <GradientMesh />
-      <Navigation />
+    <div className="min-h-screen bg-[var(--background)]">
+      {/* Dashboard Navigation */}
+      <nav className="glass-nav sticky top-0 z-50 border-b border-[var(--glass-border)]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center gap-6">
+              <Link href="/">
+                <a className="flex items-center gap-3 group">
+                  <div className="w-10 h-10 border-2 border-[var(--ink)] flex items-center justify-center font-bold headline-sans transition-colors group-hover:border-[var(--accent-cyan)] group-hover:text-[var(--accent-cyan)]">
+                    JF
+                  </div>
+                  <span className="font-semibold text-[var(--ink)] hidden sm:block">
+                    JobFit AI
+                  </span>
+                </a>
+              </Link>
+              <div className="hidden md:flex items-center gap-1 text-sm">
+                <Link href="/">
+                  <a className="px-3 py-2 rounded-lg text-[var(--ink-muted)] hover:text-[var(--ink)] hover:bg-[var(--glass-bg-hover)] transition-colors">
+                    <Home className="w-4 h-4" />
+                  </a>
+                </Link>
+                <span className="text-[var(--ink-subtle)]">/</span>
+                <span className="px-3 py-2 text-[var(--ink)]">Dashboard</span>
+              </div>
+            </div>
 
-      {/* Hero Banner with Premium Gradient */}
-      <div
-        ref={heroRef}
-        className={`w-full bg-gradient-to-r from-primary-600 via-purple-600 to-primary-700 py-8 px-4 relative overflow-hidden transition-all duration-700 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
-      >
-        {/* Premium shimmer overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" />
-        <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2" />
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-[var(--ink-muted)] hover:text-[var(--ink)] relative"
+              >
+                <Bell className="h-5 w-5" />
+                {(activities?.length || 0) > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-[var(--accent-pink)] text-[var(--paper)] text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                    {activities?.length}
+                  </span>
+                )}
+              </Button>
 
-        <div className="max-w-4xl mx-auto text-center relative z-10">
-          <h1 className="text-2xl md:text-3xl lg:text-4xl font-display font-bold text-white mb-3 leading-tight">
-            Transform Your Career with AI-Powered Precision
-          </h1>
-          <p className="text-base md:text-lg text-white/90 max-w-2xl mx-auto font-light">
-            JobFit AI leverages advanced AI and real-time job market data to optimize your resume,
-            match you with perfect roles, and maximize your application success rate.
-          </p>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="flex items-center gap-2 p-2 hover:bg-[var(--glass-bg-hover)]"
+                  >
+                    <Avatar className="w-8 h-8">
+                      <AvatarFallback className="bg-gradient-to-br from-[var(--accent-cyan)] to-[var(--accent-pink)] text-[var(--paper)] text-sm font-medium">
+                        {user?.username?.slice(0, 2).toUpperCase() || "JD"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="hidden sm:block text-[var(--ink)] font-medium">
+                      {user?.username || "Demo User"}
+                    </span>
+                    <ChevronDown className="text-[var(--ink-muted)] h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="glass-card border-[var(--glass-border)]">
+                  <DropdownMenuItem className="hover:bg-[var(--glass-bg-hover)] cursor-pointer">
+                    <UserCircle className="mr-2 h-4 w-4" />
+                    Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="hover:bg-[var(--glass-bg-hover)] cursor-pointer">
+                    <Settings className="mr-2 h-4 w-4" />
+                    Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-[var(--glass-border)]" />
+                  <DropdownMenuItem className="hover:bg-[var(--glass-bg-hover)] cursor-pointer text-[var(--error)]">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Hero Banner */}
+      <div className="relative overflow-hidden border-b border-[var(--glass-border)]">
+        <div className="absolute inset-0 bg-gradient-to-r from-[var(--accent-cyan)]/10 via-[var(--accent-purple)]/5 to-[var(--accent-pink)]/10" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-semibold text-[var(--ink)] mb-2">
+                Welcome back{user?.username ? `, ${user.username}` : ""}
+              </h1>
+              <p className="text-[var(--ink-muted)]">
+                Manage your resumes and discover your perfect career fit
+              </p>
+            </div>
+            <Button
+              onClick={() => setShowSubscriptionModal(true)}
+              className="btn-accent flex items-center gap-2"
+            >
+              <Crown className="w-4 h-4" />
+              Upgrade Plan
+            </Button>
+          </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Membership Tier Advertisement */}
-        <div className="mb-6">
-          <Card className="border-2 border-blue-500 bg-gradient-to-r from-blue-600 to-purple-600 text-white relative overflow-hidden shadow-2xl">
-            <CardContent className="p-8">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full -mr-16 -mt-16"></div>
-              <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/20 rounded-full -ml-12 -mb-12"></div>
-              <div className="relative z-10">
-                <div className="flex flex-col md:flex-row items-start md:items-center justify-between space-y-4 md:space-y-0">
-                  <div className="flex-1">
-                    <h2 className="text-3xl font-bold mb-3 text-white">
-                      Unlock Your Career Potential
-                    </h2>
-                    <p className="mb-6 text-lg text-blue-100">
-                      Choose the perfect plan for your job search journey
-                    </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                      <div className="flex items-center space-x-3 bg-white/20 rounded-lg p-3">
-                        <div className="w-3 h-3 bg-white rounded-full"></div>
-                        <span className="font-medium text-white">Plus: $0.99/month</span>
-                        <span className="text-blue-100">10 resume generations</span>
-                      </div>
-                      <div className="flex items-center space-x-3 bg-white/20 rounded-lg p-3">
-                        <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
-                        <span className="font-medium text-white">Pro: $4.99/month</span>
-                        <span className="text-blue-100">30 resumes + AI interviews</span>
-                      </div>
+        {/* Quick Actions */}
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          variants={staggerContainer}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8"
+        >
+          {[
+            {
+              icon: FileUp,
+              title: "Upload Resume",
+              subtitle: "PDF, DOCX, TXT",
+              color: "cyan",
+              onClick: () => {
+                const input = document.querySelector("[data-upload-trigger]") as HTMLInputElement;
+                if (input) input.click();
+              },
+            },
+            {
+              icon: Edit,
+              title: "Create Resume",
+              subtitle: "Build from scratch",
+              color: "green",
+              onClick: () => setShowManualForm(true),
+            },
+            {
+              icon: Wand2,
+              title: "Tailor Resume",
+              subtitle: latestResume ? "For specific job" : "Upload first",
+              color: "pink",
+              onClick: latestResume ? handleTailorResume : undefined,
+              disabled: !latestResume,
+            },
+            {
+              icon: Search,
+              title: "Find Roles",
+              subtitle: latestResume ? "AI recommendations" : "Upload first",
+              color: "purple",
+              onClick: () =>
+                latestResume &&
+                document.querySelector("[data-recommendations-scroll]")?.scrollIntoView({ behavior: "smooth" }),
+              disabled: !latestResume,
+            },
+          ].map((action, index) => (
+            <motion.div key={action.title} variants={fadeInUp}>
+              <Card
+                className={`glass-card border-0 cursor-pointer group hover-lift ${
+                  action.disabled ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+                onClick={action.disabled ? undefined : action.onClick}
+              >
+                <CardContent className="p-5">
+                  <div className="flex items-center gap-4">
+                    <div
+                      className={`w-12 h-12 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform`}
+                      style={{
+                        background: `var(--accent-${action.color}-glow)`,
+                        border: `1px solid rgba(var(--accent-${action.color}), 0.3)`,
+                      }}
+                    >
+                      <action.icon
+                        className="h-5 w-5"
+                        style={{ color: `var(--accent-${action.color})` }}
+                      />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-[var(--ink)]">{action.title}</h3>
+                      <p className="text-sm text-[var(--ink-muted)]">{action.subtitle}</p>
                     </div>
                   </div>
-                  <div className="flex space-x-3">
-                    <Button
-                      onClick={() => setShowSubscriptionModal(true)}
-                      className="bg-white text-blue-600 hover:bg-blue-50 font-bold px-8 py-3 text-lg shadow-lg"
-                    >
-                      View All Plans
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Header Section */}
-        <div
-          ref={headerRef}
-          className={`mb-8 transition-all duration-700 delay-100 ${headerVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
-        >
-          <h1 className="text-3xl font-display font-bold text-grey-900 mb-2">Dashboard</h1>
-          <p className="text-grey-600">Manage your resumes and discover your perfect career fit</p>
-        </div>
-
-        {/* Quick Actions */}
-        <div ref={actionsContainerRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card
-            className={`glass-card border-0 cursor-pointer group hover:shadow-glass transition-all duration-500 card-3d ${
-              actionsVisible[0] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-            }`}
-            onClick={() => {
-              const input = document.querySelector("[data-upload-trigger]") as HTMLInputElement;
-              if (input) input.click();
-            }}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-primary-100 to-primary-200 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                  <FileUp className="text-primary-600 h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-grey-900">Upload Resume</h3>
-                  <p className="text-sm text-grey-600">PDF, DOCX, TXT</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card
-            className={`glass-card border-0 cursor-pointer group hover:shadow-glass transition-all duration-500 card-3d ${
-              actionsVisible[1] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-            }`}
-            onClick={() => setShowManualForm(true)}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-success-50 to-success-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                  <Edit className="text-success-600 h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-grey-900">Create Resume</h3>
-                  <p className="text-sm text-grey-600">From scratch</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card
-            className={`glass-card border-0 cursor-pointer group hover:shadow-glass transition-all duration-500 card-3d ${
-              actionsVisible[2] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-            } ${!latestResume ? "opacity-50 cursor-not-allowed" : ""}`}
-            onClick={latestResume ? handleTailorResume : undefined}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-orange-100 to-orange-200 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                  <Wand2 className="text-orange-600 h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-grey-900">Tailor Resume</h3>
-                  <p className="text-sm text-grey-600">
-                    {latestResume ? "For specific job" : "Upload resume first"}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card
-            className={`glass-card border-0 cursor-pointer group hover:shadow-glass transition-all duration-500 card-3d ${
-              actionsVisible[3] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-            } ${!latestResume ? "opacity-50 cursor-not-allowed" : ""}`}
-            onClick={() =>
-              latestResume &&
-              document.querySelector("[data-recommendations-scroll]")?.scrollIntoView({ behavior: "smooth" })
-            }
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                  <Search className="text-purple-600 h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-grey-900">Find Roles</h3>
-                  <p className="text-sm text-grey-600">
-                    {latestResume ? "AI recommendations" : "Upload resume first"}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Subscription-based Features */}
-        {user?.subscriptionStatus === "free" && (
-          <div className="mb-8">
-            <AchievementSystem />
-          </div>
-        )}
-
-        {user?.subscriptionStatus === "plus" && (
-          <div className="mb-8">
-            <JobMarketTrends resumeSection="skills" />
-          </div>
-        )}
-
-        {user?.subscriptionStatus === "pro" && (
-          <div className="mb-8">
-            <JobBoardIntegration />
-          </div>
-        )}
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column */}
           <div className="lg:col-span-2 space-y-8">
             {/* Upload Section */}
-            <div
-              ref={uploadRef}
-              className={`transition-all duration-700 ${uploadVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
-            >
-              <Card className="glass-card border-0 card-3d overflow-hidden">
-                <CardContent className="p-6 relative">
-                  {/* Premium gradient accent */}
-                  <div className="absolute top-0 left-0 w-48 h-48 bg-gradient-to-br from-primary-500/5 to-purple-500/5 rounded-full -translate-y-1/2 -translate-x-1/2 blur-3xl" />
-
-                  <h2 className="text-xl font-display font-bold text-grey-900 mb-6 flex items-center relative z-10">
-                    <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center mr-3 shadow-lg">
-                      <Upload className="text-white h-5 w-5" />
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+              <Card className="glass-panel overflow-hidden">
+                <CardContent className="p-6">
+                  <h2 className="text-xl font-semibold text-[var(--ink)] mb-6 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[var(--primary-muted)] border border-[var(--accent-cyan)]/30 flex items-center justify-center">
+                      <Upload className="text-[var(--accent-cyan)] h-5 w-5" />
                     </div>
                     Upload Your Resume
                   </h2>
 
                   <FileUpload />
 
-                <div className="mt-6 flex justify-center">
-                  <span className="text-grey-500 text-sm">or</span>
-                </div>
-
-                <div className="mt-6 text-center space-y-3">
-                  <Button
-                    onClick={() => setShowManualForm(true)}
-                    className="bg-primary-600 text-white hover:bg-primary-700 w-full"
-                  >
-                    Fill Out Manually
-                  </Button>
-                  <Button onClick={handleDemoUpload} variant="outline" className="w-full">
-                    Try Demo Resume
-                  </Button>
-                </div>
+                  <div className="mt-6 flex flex-col sm:flex-row gap-3">
+                    <Button
+                      onClick={() => setShowManualForm(true)}
+                      className="btn-primary flex-1"
+                    >
+                      Build Manually
+                    </Button>
+                    <Button onClick={handleDemoUpload} className="btn-ghost flex-1">
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Try Demo
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
-            </div>
+            </motion.div>
 
-            {/* Current Resume Status */}
+            {/* Resume Status */}
             {latestResume && (
-              <Card className="glass-card border-0 card-3d">
-                <CardContent className="p-6">
-                  <h2 className="text-xl font-display font-bold text-grey-900 mb-6 flex items-center">
-                    <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center mr-3 shadow-lg">
-                      <UserCircle className="text-white h-5 w-5" />
-                    </div>
-                    Your Profile Status
-                  </h2>
-
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 bg-success-50 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <CheckCircle className="text-success-600 h-5 w-5" />
-                        <span className="font-medium text-grey-900">Resume Uploaded</span>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+              >
+                <Card className="glass-panel">
+                  <CardContent className="p-6">
+                    <h2 className="text-xl font-semibold text-[var(--ink)] mb-6 flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-[var(--success-muted)] border border-[var(--success)]/30 flex items-center justify-center">
+                        <UserCircle className="text-[var(--success)] h-5 w-5" />
                       </div>
-                      <span className="text-sm text-grey-600">
-                        {formatTimeAgo(latestResume.createdAt)}
-                      </span>
-                    </div>
+                      Resume Status
+                    </h2>
 
-                    <div className="flex items-center justify-between p-4 bg-primary-50 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <CheckCircle className="text-primary-600 h-5 w-5" />
-                        <span className="font-medium text-grey-900">Parsing Completed</span>
-                      </div>
-                      <span className="text-sm text-grey-600">Complete</span>
-                    </div>
-
-                    <div className="p-4 bg-grey-100 rounded-lg">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center space-x-3">
-                          <CheckCircle className="text-success-600 h-5 w-5" />
-                          <span className="font-medium text-grey-700">ATS Compliance Check</span>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between p-4 rounded-lg bg-[var(--success-muted)]">
+                        <div className="flex items-center gap-3">
+                          <CheckCircle className="text-[var(--success)] h-5 w-5" />
+                          <span className="font-medium text-[var(--ink)]">Resume Uploaded</span>
                         </div>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={handleOptimizeResume}
-                          className="text-xs"
-                        >
-                          Optimize
-                        </Button>
+                        <span className="text-sm text-[var(--ink-muted)]">
+                          {formatTimeAgo(latestResume.createdAt)}
+                        </span>
                       </div>
-                      <div className="w-full bg-grey-200 rounded-full h-2">
-                        <div
-                          className="bg-success-500 h-2 rounded-full transition-all duration-1000"
-                          style={{ width: `${latestResume.atsScore || 0}%` }}
-                        />
-                      </div>
-                      <span className="text-sm text-grey-600 mt-1 block">
-                        Score: {latestResume.atsScore || 0}%
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
 
-            {/* Recent Activity */}
-            <Card className="glass-card border-0 card-3d">
-              <CardContent className="p-6">
-                <h2 className="text-xl font-display font-bold text-grey-900 mb-6 flex items-center">
-                  <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center mr-3 shadow-lg">
-                    <Clock className="text-white h-5 w-5" />
-                  </div>
-                  Recent Activity
-                </h2>
-
-                <div className="space-y-4">
-                  {activities?.length ? (
-                    activities.map((activity) => (
-                      <div
-                        key={activity.id}
-                        className="flex items-start space-x-4 p-4 hover:bg-grey-50 rounded-lg transition-colors"
-                      >
-                        <div className="w-8 h-8 bg-success-100 rounded-full flex items-center justify-center flex-shrink-0">
-                          {getActivityIcon(activity.type)}
+                      <div className="p-4 rounded-lg bg-[var(--glass-bg)]">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <Target className="text-[var(--accent-cyan)] h-5 w-5" />
+                            <span className="font-medium text-[var(--ink)]">ATS Score</span>
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={handleOptimizeResume}
+                            className="btn-primary text-xs py-1 px-3"
+                          >
+                            Optimize
+                          </Button>
                         </div>
-                        <div className="flex-1">
-                          <p className="font-medium text-grey-900">{activity.title}</p>
-                          {activity.description && (
-                            <p className="text-sm text-grey-600">{activity.description}</p>
-                          )}
-                          <span className="text-xs text-grey-500">
-                            {formatTimeAgo(activity.createdAt)}
+                        <div className="w-full bg-[var(--muted)] rounded-full h-3 overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${latestResume.atsScore || 0}%` }}
+                            transition={{ duration: 1, delay: 0.5 }}
+                            className="h-full rounded-full bg-gradient-to-r from-[var(--accent-cyan)] to-[var(--success)]"
+                          />
+                        </div>
+                        <div className="flex justify-between mt-2 text-sm">
+                          <span className="text-[var(--ink-muted)]">Score</span>
+                          <span className="font-semibold text-[var(--accent-cyan)]">
+                            {latestResume.atsScore || 0}%
                           </span>
                         </div>
                       </div>
-                    ))
-                  ) : (
-                    <p className="text-grey-500 text-center py-8">No recent activity</p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+
+            {/* Recent Activity */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <Card className="glass-panel">
+                <CardContent className="p-6">
+                  <h2 className="text-xl font-semibold text-[var(--ink)] mb-6 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[var(--accent-purple-glow)] border border-[var(--accent-purple)]/30 flex items-center justify-center">
+                      <Clock className="text-[var(--accent-purple)] h-5 w-5" />
+                    </div>
+                    Recent Activity
+                  </h2>
+
+                  <div className="space-y-3">
+                    {activities?.length ? (
+                      activities.slice(0, 5).map((activity) => (
+                        <div
+                          key={activity.id}
+                          className="flex items-start gap-4 p-3 rounded-lg hover:bg-[var(--glass-bg-hover)] transition-colors"
+                        >
+                          <div className="w-8 h-8 rounded-lg bg-[var(--glass-bg)] flex items-center justify-center flex-shrink-0">
+                            {getActivityIcon(activity.type)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-[var(--ink)] truncate">
+                              {activity.title}
+                            </p>
+                            {activity.description && (
+                              <p className="text-sm text-[var(--ink-muted)] truncate">
+                                {activity.description}
+                              </p>
+                            )}
+                            <span className="text-xs text-[var(--ink-subtle)]">
+                              {formatTimeAgo(activity.createdAt)}
+                            </span>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-[var(--ink-muted)] text-center py-8">
+                        No recent activity
+                      </p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
           </div>
 
           {/* Right Column */}
@@ -612,57 +609,55 @@ Certified Scrum Master (CSM) | 2021`;
             {latestResume && <SkillProfile resume={latestResume} />}
 
             {/* Quick Stats */}
-            <div
-              ref={statsRef}
-              className={`transition-all duration-700 ${statsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
             >
-              <Card className="glass-card border-0 card-3d overflow-hidden">
-                <CardContent className="p-6 relative">
-                  {/* Premium gradient accent */}
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary-500/10 to-purple-500/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
-
-                  <h2 className="text-xl font-display font-bold text-grey-900 mb-6 flex items-center relative z-10">
-                    <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center mr-3 shadow-lg">
-                      <TrendingUp className="text-white h-5 w-5" />
+              <Card className="glass-panel">
+                <CardContent className="p-6">
+                  <h2 className="text-xl font-semibold text-[var(--ink)] mb-6 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[var(--accent-amber-glow)] border border-[var(--accent-amber)]/30 flex items-center justify-center">
+                      <TrendingUp className="text-[var(--accent-amber)] h-5 w-5" />
                     </div>
                     Quick Stats
                   </h2>
 
-                  <div className="space-y-6 relative z-10">
-                    <div className="text-center p-4 bg-gradient-to-br from-primary-50 to-primary-100/50 rounded-xl">
-                      <div className="text-4xl font-display font-bold bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent mb-1">
+                  <div className="space-y-4">
+                    <div className="stat-card text-center">
+                      <div className="text-3xl font-bold gradient-text mb-1">
                         {stats?.resumesCreated || 0}
                       </div>
-                      <div className="text-sm text-grey-600 font-medium">Resumes Created</div>
+                      <div className="text-sm text-[var(--ink-muted)]">Resumes Created</div>
                     </div>
 
-                    <div className="text-center p-4 bg-gradient-to-br from-success-50 to-success-100/50 rounded-xl">
-                      <div className="text-4xl font-display font-bold bg-gradient-to-r from-success-600 to-success-700 bg-clip-text text-transparent mb-1">
+                    <div className="stat-card text-center" style={{ background: 'var(--success-muted)', borderColor: 'rgba(16, 185, 129, 0.2)' }}>
+                      <div className="text-3xl font-bold text-[var(--success)] mb-1">
                         {stats?.averageAtsScore || 0}%
                       </div>
-                      <div className="text-sm text-grey-600 font-medium">Avg ATS Score</div>
+                      <div className="text-sm text-[var(--ink-muted)]">Avg ATS Score</div>
                     </div>
 
-                    <div className="text-center p-4 bg-gradient-to-br from-orange-50 to-orange-100/50 rounded-xl">
-                      <div className="text-4xl font-display font-bold bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent mb-1">
+                    <div className="stat-card text-center" style={{ background: 'var(--accent-pink-glow)', borderColor: 'rgba(244, 114, 182, 0.2)' }}>
+                      <div className="text-3xl font-bold text-[var(--accent-pink)] mb-1">
                         {stats?.roleMatches || 0}
                       </div>
-                      <div className="text-sm text-grey-600 font-medium">Role Matches Found</div>
+                      <div className="text-sm text-[var(--ink-muted)]">Role Matches</div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-            </div>
+            </motion.div>
           </div>
         </div>
       </div>
 
       {/* Resume Builder Dialog */}
       <Dialog open={showManualForm} onOpenChange={setShowManualForm}>
-        <DialogContent className="max-w-6xl max-h-[95vh] overflow-hidden p-0 glass-card border-0">
+        <DialogContent className="max-w-6xl max-h-[95vh] overflow-hidden p-0 glass-panel border-[var(--glass-border)]">
           <div className="p-6">
             <DialogHeader className="mb-6">
-              <DialogTitle className="text-2xl">Build Your Resume</DialogTitle>
+              <DialogTitle className="text-2xl text-[var(--ink)]">Build Your Resume</DialogTitle>
             </DialogHeader>
             <ResumeBuilder
               onComplete={handleResumeBuilderComplete}
@@ -674,7 +669,7 @@ Certified Scrum Master (CSM) | 2021`;
 
       {/* Tailoring Workspace Modal */}
       <Dialog open={showTailoringModal} onOpenChange={setShowTailoringModal}>
-        <DialogContent className="max-w-[95vw] max-h-[95vh] overflow-hidden p-0 glass-card border-0">
+        <DialogContent className="max-w-[95vw] max-h-[95vh] overflow-hidden p-0 glass-panel border-[var(--glass-border)]">
           <TailoringWorkspace
             resumeId={selectedResumeId}
             onClose={() => setShowTailoringModal(false)}
