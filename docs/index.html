@@ -1082,10 +1082,16 @@
           card.className = "tracker-card";
 
           const left = document.createElement("div");
-          left.innerHTML = `
-            <strong>${item.title}</strong><br />
-            <span class="muted">${item.company} · ${item.date || "No date"}</span>
-          `;
+          const strong = document.createElement("strong");
+          strong.textContent = item.title;
+
+          const mutedSpan = document.createElement("span");
+          mutedSpan.className = "muted";
+          mutedSpan.textContent = `${item.company} · ${item.date || "No date"}`;
+
+          left.appendChild(strong);
+          left.appendChild(document.createElement("br"));
+          left.appendChild(mutedSpan);
 
           const badge = document.createElement("span");
           badge.className =
