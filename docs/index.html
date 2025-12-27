@@ -1115,7 +1115,13 @@
           right.style.gap = "12px";
           right.style.alignItems = "center";
           right.appendChild(badge);
-          right.appendChild(remove);
+          let data;
+          try {
+            data = JSON.parse(localStorage.getItem(trackerKey) || "[]");
+            if (!Array.isArray(data)) data = [];
+          } catch {
+            data = [];
+          }
 
           card.appendChild(left);
           card.appendChild(right);
