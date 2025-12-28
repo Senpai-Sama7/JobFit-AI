@@ -1238,14 +1238,20 @@
 
           const badgeClass = item.stage.toLowerCase();
 
+          const escapeHTML = (str) => {
+            const p = document.createElement('p');
+            p.textContent = str;
+            return p.innerHTML;
+          };
+
           card.innerHTML = `
             <div class="info">
-              <strong>${item.title}</strong>
-              <span>${item.company} · ${item.date || 'No date'}${item.salary ? ' · ' + item.salary : ''}</span>
-              ${item.notes ? `<span style="display: block; margin-top: 4px; font-size: 0.85rem;">${item.notes}</span>` : ''}
+              <strong>${escapeHTML(item.title)}</strong>
+              <span>${escapeHTML(item.company)} · ${escapeHTML(item.date || 'No date')}${item.salary ? ' · ' + escapeHTML(item.salary) : ''}</span>
+              ${item.notes ? `<span style="display: block; margin-top: 4px; font-size: 0.85rem;">${escapeHTML(item.notes)}</span>` : ''}
             </div>
             <div class="actions">
-              <span class="badge ${badgeClass}">${item.stage}</span>
+              <span class="badge ${badgeClass}">${escapeHTML(item.stage)}</span>
               <button class="remove" onclick="removeJob(${index})">Remove</button>
             </div>
           `;
