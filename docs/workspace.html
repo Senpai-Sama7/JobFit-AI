@@ -433,10 +433,19 @@
         const resumeText = resumeInput.value;
         const jobText = jobInput.value;
         const jobTokens = unique(tokenize(jobText));
+
+        if (!jobTokens.length) {
+          scoreRing.style.setProperty("--score", "0%");
+          scoreValue.textContent = "0%";
+          renderKeywords(matchedKeywords, []);
+          renderKeywords(missingKeywords, []);
+          return;
+        }
+
         const resumeTokens = unique(tokenize(resumeText));
         const matches = jobTokens.filter((token) => resumeTokens.includes(token));
         const missing = jobTokens.filter((token) => !resumeTokens.includes(token));
-        const score = jobTokens.length ? Math.round((matches.length / jobTokens.length) * 100) : 40;
+        const score = Math.round((matches.length / jobTokens.length) * 100);
 
         scoreRing.style.setProperty("--score", `${score}%`);
         scoreValue.textContent = `${score}%`;
