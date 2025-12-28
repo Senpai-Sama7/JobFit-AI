@@ -412,7 +412,7 @@
           .toLowerCase()
           .replace(/[^a-z0-9+.# ]/g, " ")
           .split(/\s+/)
-          .filter((word) => word.length > 3 && !stopWords.has(word));
+          .filter((word) => word.length > 1 && !stopWords.has(word));
 
       const unique = (arr) => Array.from(new Set(arr));
 
