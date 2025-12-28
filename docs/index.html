@@ -435,7 +435,16 @@
         });
       };
 
-      window.addEventListener("scroll", updateScenes, { passive: true });
+      let ticking = false;
+      window.addEventListener("scroll", () => {
+        if (!ticking) {
+          window.requestAnimationFrame(() => {
+            updateScenes();
+            ticking = false;
+          });
+          ticking = true;
+        }
+      }, { passive: true });
       window.addEventListener("resize", updateScenes);
       updateScenes();
     </script>
