@@ -259,6 +259,10 @@
     box-shadow: var(--glass-shadow);
   }
 
+  .dark .glass-card:hover {
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  }
+
   .glass-card-elevated {
     background: var(--glass-bg);
     backdrop-filter: blur(24px) saturate(200%);
