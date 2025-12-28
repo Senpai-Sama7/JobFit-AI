@@ -415,7 +415,9 @@
       const updateScenes = () => {
         const rect = scrollstory.getBoundingClientRect();
         const total = scrollstory.offsetHeight - window.innerHeight;
-        const progress = clamp(-rect.top / total, 0, 1);
+        const progress = total > 0
+          ? clamp(-rect.top / total, 0, 1)
+          : 0;
         const sceneIndex = Math.floor(progress * scenes.length);
         scenes.forEach((scene, index) => {
           const isActive = index === Math.min(sceneIndex, scenes.length - 1);
