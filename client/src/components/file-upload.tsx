@@ -36,7 +36,7 @@ export function FileUpload() {
   const uploadMutation = useUploadResume();
   const { data: statusData } = useResumeStatus(resumeId);
 
-  const onDrop = useCallback((acceptedFiles: File[], rejectedFiles: any[]) => {
+  const onDrop = useCallback((acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
     if (rejectedFiles.length > 0) {
       const error = rejectedFiles[0].errors[0];
       console.error('File rejected:', error.message);
