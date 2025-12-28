@@ -217,7 +217,7 @@ router.post('/api/auth/register', rateLimiters.auth, async (req: Request, res: R
     logger.error('Registration failed', error);
     res.status(500).json({ error: 'Registration failed' });
   }
-});
+}));
 
 // POST /api/auth/login - Login user (with auth rate limiting for brute force protection)
 router.post('/api/auth/login', rateLimiters.auth, (req: Request, res: Response, next: NextFunction) => {
