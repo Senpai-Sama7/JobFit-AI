@@ -37,6 +37,8 @@
         --border: rgba(248, 250, 252, 0.16);
         --glass: rgba(15, 23, 42, 0.6);
         --shadow: 0 25px 60px rgba(0, 0, 0, 0.45);
+        --success: #22c55e;
+        --warning: #f59e0b;
       }
 
       * {
@@ -57,6 +59,11 @@
       a {
         color: inherit;
         text-decoration: none;
+        transition: color 0.2s ease, transform 0.2s ease;
+      }
+
+      a:hover {
+        color: var(--accent);
       }
 
       .container {
@@ -90,6 +97,12 @@
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.08em;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+      }
+
+      .logo:hover {
+        transform: scale(1.02);
       }
 
       .logo-mark {
@@ -99,6 +112,10 @@
         display: grid;
         place-items: center;
         font-weight: 700;
+        background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
       }
 
       nav ul {
@@ -110,6 +127,27 @@
         text-transform: uppercase;
         font-size: 0.85rem;
         letter-spacing: 0.08em;
+      }
+
+      nav ul li a {
+        position: relative;
+        padding: 4px 0;
+      }
+
+      nav ul li a::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background: var(--accent);
+        transition: width 0.3s ease;
+      }
+
+      nav ul li a:hover::after,
+      nav ul li a.active::after {
+        width: 100%;
       }
 
       .cta {
@@ -127,11 +165,52 @@
         text-transform: uppercase;
         letter-spacing: 0.08em;
         cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        transition: left 0.5s ease;
+      }
+
+      .btn:hover::before {
+        left: 100%;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 20px rgba(56, 189, 248, 0.3);
+      }
+
+      .btn:active {
+        transform: translateY(0);
       }
 
       .btn.ghost {
         background: transparent;
         color: var(--ink);
+      }
+
+      .btn.ghost:hover {
+        background: rgba(248, 250, 252, 0.1);
+      }
+
+      .btn.primary {
+        background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+        border-color: transparent;
+        color: white;
+      }
+
+      .btn.primary:hover {
+        box-shadow: 0 4px 25px rgba(56, 189, 248, 0.5);
       }
 
       .scrollstory {
@@ -194,6 +273,32 @@
         border: 2px solid var(--ink);
         padding: 16px;
         background: rgba(248, 250, 252, 0.04);
+        transition: all 0.3s ease;
+        cursor: pointer;
+      }
+
+      .scene-card:hover {
+        background: rgba(248, 250, 252, 0.08);
+        transform: translateY(-4px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        border-color: var(--accent);
+      }
+
+      .scene-card strong {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .scene-card .icon {
+        width: 24px;
+        height: 24px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+        border-radius: 6px;
+        font-size: 12px;
       }
 
       .parallax-layer {
@@ -210,10 +315,17 @@
         background: radial-gradient(circle, rgba(56, 189, 248, 0.45), transparent 70%);
         filter: blur(2px);
         mix-blend-mode: screen;
+        animation: float 6s ease-in-out infinite;
       }
 
       .orb.pink {
         background: radial-gradient(circle, rgba(244, 114, 182, 0.45), transparent 70%);
+        animation-delay: -3s;
+      }
+
+      @keyframes float {
+        0%, 100% { transform: translateY(0) scale(1); }
+        50% { transform: translateY(-20px) scale(1.05); }
       }
 
       .mask-overlay {
@@ -241,9 +353,127 @@
         padding-top: 32px;
       }
 
+      .footer-grid a {
+        display: block;
+        padding: 4px 0;
+      }
+
+      .social-links {
+        display: flex;
+        gap: 12px;
+        margin-top: 16px;
+      }
+
+      .social-links a {
+        width: 40px;
+        height: 40px;
+        border: 2px solid var(--ink);
+        display: grid;
+        place-items: center;
+        transition: all 0.3s ease;
+      }
+
+      .social-links a:hover {
+        background: var(--accent);
+        border-color: var(--accent);
+        transform: translateY(-2px);
+      }
+
+      .stats-bar {
+        display: flex;
+        justify-content: center;
+        gap: 48px;
+        padding: 24px 0;
+        flex-wrap: wrap;
+      }
+
+      .stat-item {
+        text-align: center;
+      }
+
+      .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        font-family: "Space Grotesk", sans-serif;
+        background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .stat-label {
+        color: var(--muted);
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .scene-cta {
+        display: flex;
+        gap: 12px;
+        margin-top: 24px;
+        flex-wrap: wrap;
+      }
+
+      /* Toast notification */
+      .toast {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        padding: 16px 24px;
+        background: var(--glass);
+        border: 2px solid var(--accent);
+        border-radius: 8px;
+        backdrop-filter: blur(10px);
+        transform: translateX(120%);
+        transition: transform 0.3s ease;
+        z-index: 1000;
+      }
+
+      .toast.show {
+        transform: translateX(0);
+      }
+
+      /* Scroll indicator */
+      .scroll-indicator {
+        position: fixed;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        color: var(--muted);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        animation: bounce 2s infinite;
+        z-index: 5;
+      }
+
+      .scroll-indicator .arrow {
+        width: 24px;
+        height: 24px;
+        border-right: 2px solid var(--muted);
+        border-bottom: 2px solid var(--muted);
+        transform: rotate(45deg);
+      }
+
+      @keyframes bounce {
+        0%, 100% { transform: translateX(-50%) translateY(0); }
+        50% { transform: translateX(-50%) translateY(8px); }
+      }
+
       @media (max-width: 720px) {
         .cta {
           width: 100%;
+        }
+        .stats-bar {
+          gap: 24px;
+        }
+        .scroll-indicator {
+          display: none;
         }
       }
     </style>
@@ -289,19 +519,37 @@
               Run ATS analysis, tailor resumes, and track every application with a live, browser-based workspace that updates
               as you move.
             </p>
+            <div class="stats-bar">
+              <div class="stat-item">
+                <div class="stat-number" id="statResumes">0</div>
+                <div class="stat-label">Resumes Optimized</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-number" id="statScore">0%</div>
+                <div class="stat-label">Avg ATS Improvement</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-number" id="statUsers">0</div>
+                <div class="stat-label">Active Users</div>
+              </div>
+            </div>
             <div class="scene-grid">
-              <div class="scene-card">
-                <strong>Live ATS Score</strong>
+              <div class="scene-card" data-href="workspace.html" tabindex="0">
+                <strong><span class="icon">&#9889;</span> Live ATS Score</strong>
                 <p class="muted">Keyword match, missing skills, instant fit score.</p>
               </div>
-              <div class="scene-card">
-                <strong>Resume Studio</strong>
+              <div class="scene-card" onclick="window.location.href='workspace.html'">
+                <strong><span class="icon">&#9998;</span> Resume Studio</strong>
                 <p class="muted">Generate role-ready bullets with measurable impact.</p>
               </div>
-              <div class="scene-card">
-                <strong>Pipeline Tracker</strong>
+              <div class="scene-card" onclick="window.location.href='workspace.html'">
+                <strong><span class="icon">&#128202;</span> Pipeline Tracker</strong>
                 <p class="muted">Monitor outreach, interviews, and offers.</p>
               </div>
+            </div>
+            <div class="scene-cta">
+              <a class="btn primary" href="workspace.html">Try It Free</a>
+              <a class="btn ghost" href="platform.html">Learn More</a>
             </div>
           </div>
         </section>
@@ -314,18 +562,21 @@
               in-browser.
             </p>
             <div class="scene-grid">
-              <div class="scene-card">
-                <strong>Smart Tokenizer</strong>
+              <div class="scene-card" onclick="window.location.href='workspace.html'">
+                <strong><span class="icon">&#128269;</span> Smart Tokenizer</strong>
                 <p class="muted">Highlights skill gaps by role priority.</p>
               </div>
-              <div class="scene-card">
-                <strong>Score Dial</strong>
+              <div class="scene-card" onclick="window.location.href='workspace.html'">
+                <strong><span class="icon">&#127919;</span> Score Dial</strong>
                 <p class="muted">Live score with instant updates.</p>
               </div>
-              <div class="scene-card">
-                <strong>Gap Checklist</strong>
+              <div class="scene-card" onclick="window.location.href='workspace.html'">
+                <strong><span class="icon">&#9989;</span> Gap Checklist</strong>
                 <p class="muted">Actionable fixes per requirement.</p>
               </div>
+            </div>
+            <div class="scene-cta">
+              <a class="btn primary" href="workspace.html">Analyze Your Resume</a>
             </div>
           </div>
         </section>
@@ -337,18 +588,21 @@
               Generate bullets, refine achievements, and tailor experiences to every job description in one guided workflow.
             </p>
             <div class="scene-grid">
-              <div class="scene-card">
-                <strong>Impact Bullets</strong>
+              <div class="scene-card" onclick="window.location.href='workspace.html'">
+                <strong><span class="icon">&#128640;</span> Impact Bullets</strong>
                 <p class="muted">Auto-generate quantified results.</p>
               </div>
-              <div class="scene-card">
-                <strong>Role Alignment</strong>
+              <div class="scene-card" onclick="window.location.href='workspace.html'">
+                <strong><span class="icon">&#127919;</span> Role Alignment</strong>
                 <p class="muted">Mirror hiring priorities instantly.</p>
               </div>
-              <div class="scene-card">
-                <strong>Story Cohesion</strong>
+              <div class="scene-card" onclick="window.location.href='workspace.html'">
+                <strong><span class="icon">&#128218;</span> Story Cohesion</strong>
                 <p class="muted">Keep narratives consistent across roles.</p>
               </div>
+            </div>
+            <div class="scene-cta">
+              <a class="btn primary" href="workspace.html">Build Your Resume</a>
             </div>
           </div>
         </section>
@@ -361,18 +615,22 @@
               workspace.
             </p>
             <div class="scene-grid">
-              <div class="scene-card">
-                <strong>Prep Kits</strong>
+              <div class="scene-card" onclick="window.location.href='workspace.html'">
+                <strong><span class="icon">&#128214;</span> Prep Kits</strong>
                 <p class="muted">Role-specific question banks.</p>
               </div>
-              <div class="scene-card">
-                <strong>Notes & Follow-ups</strong>
+              <div class="scene-card" onclick="window.location.href='workspace.html'">
+                <strong><span class="icon">&#128221;</span> Notes & Follow-ups</strong>
                 <p class="muted">Capture insights after every touchpoint.</p>
               </div>
-              <div class="scene-card">
-                <strong>Offer Readiness</strong>
+              <div class="scene-card" onclick="window.location.href='workspace.html'">
+                <strong><span class="icon">&#128176;</span> Offer Readiness</strong>
                 <p class="muted">Track compensation and negotiation notes.</p>
               </div>
+            </div>
+            <div class="scene-cta">
+              <a class="btn primary" href="workspace.html">Start Preparing</a>
+              <a class="btn ghost" href="pricing.html">View Pricing</a>
             </div>
           </div>
         </section>
@@ -383,14 +641,19 @@
     <footer class="section-footer">
       <div class="container footer-grid">
         <div>
-          <div class="logo" style="margin-bottom: 12px;">
+          <a href="index.html" class="logo" style="margin-bottom: 12px;">
             <div class="logo-mark">JF</div>
             JobFit AI
-          </div>
+          </a>
           <p class="muted">Explore the live demo, platform overview, and pricing on dedicated pages.</p>
+          <div class="social-links">
+            <a href="https://github.com/Senpai-Sama7/JobFit-AI" target="_blank" rel="noopener" title="GitHub">GH</a>
+            <a href="https://twitter.com" target="_blank" rel="noopener" title="Twitter">TW</a>
+            <a href="https://linkedin.com" target="_blank" rel="noopener" title="LinkedIn">LI</a>
+          </div>
         </div>
         <div>
-          <strong>Pages</strong>
+          <strong>Product</strong>
           <div style="display: grid; gap: 8px; margin-top: 12px;">
             <a href="platform.html">Platform</a>
             <a href="workspace.html">Workspace</a>
@@ -398,19 +661,74 @@
           </div>
         </div>
         <div>
+          <strong>Resources</strong>
+          <div style="display: grid; gap: 8px; margin-top: 12px;">
+            <a href="workspace.html">Documentation</a>
+            <a href="workspace.html">API Reference</a>
+            <a href="https://github.com/Senpai-Sama7/JobFit-AI" target="_blank" rel="noopener">GitHub</a>
+          </div>
+        </div>
+        <div>
           <strong>Contact</strong>
-          <p class="muted" style="margin-top: 12px;">hello@jobfit.ai</p>
+          <div style="display: grid; gap: 8px; margin-top: 12px;">
+            <a href="mailto:hello@jobfit.ai">hello@jobfit.ai</a>
+            <a href="pricing.html">Contact Sales</a>
+            <a href="workspace.html">Support</a>
+          </div>
         </div>
       </div>
-    </section>
+      <div class="container" style="text-align: center; padding-top: 32px; color: var(--muted); font-size: 0.85rem;">
+        &copy; 2025 JobFit AI. All rights reserved.
+      </div>
+    </footer>
+
+    <!-- Scroll indicator -->
+    <div class="scroll-indicator" id="scrollIndicator">
+      <span>Scroll</span>
+      <div class="arrow"></div>
+    </div>
+
+    <!-- Toast notification -->
+    <div class="toast" id="toast"></div>
 
     <script>
       const scenes = Array.from(document.querySelectorAll(".scene"));
       const scrollstory = document.getElementById("scrollstory");
       const maskOverlay = document.getElementById("maskOverlay");
       const layers = Array.from(document.querySelectorAll(".parallax-layer"));
+      const scrollIndicator = document.getElementById("scrollIndicator");
+      const toast = document.getElementById("toast");
 
       const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
+      // Animate stats on load
+      const animateStats = () => {
+        const stats = [
+          { el: document.getElementById("statResumes"), target: 25000, suffix: "+" },
+          { el: document.getElementById("statScore"), target: 47, suffix: "%" },
+          { el: document.getElementById("statUsers"), target: 8500, suffix: "+" }
+        ];
+
+        stats.forEach(stat => {
+          let current = 0;
+          const increment = stat.target / 60;
+          const timer = setInterval(() => {
+            current += increment;
+            if (current >= stat.target) {
+              current = stat.target;
+              clearInterval(timer);
+            }
+            stat.el.textContent = Math.floor(current).toLocaleString() + stat.suffix;
+          }, 16);
+        });
+      };
+
+      // Show toast notification
+      const showToast = (message) => {
+        toast.textContent = message;
+        toast.classList.add("show");
+        setTimeout(() => toast.classList.remove("show"), 3000);
+      };
 
       const updateScenes = () => {
         const rect = scrollstory.getBoundingClientRect();
@@ -435,6 +753,13 @@
           const translate = progress * 120 * depth;
           layer.style.transform = `translateY(${translate}px)`;
         });
+
+        // Hide scroll indicator after scrolling
+        if (progress > 0.05) {
+          scrollIndicator.style.opacity = "0";
+        } else {
+          scrollIndicator.style.opacity = "1";
+        }
       };
 
       let ticking = false;
@@ -448,7 +773,33 @@
         }
       }, { passive: true });
       window.addEventListener("resize", updateScenes);
+
+      // Initialize
       updateScenes();
+
+      // Animate stats after page load
+      setTimeout(animateStats, 500);
+
+      // Mark active nav link
+      const currentPage = window.location.pathname.split("/").pop() || "index.html";
+      document.querySelectorAll("nav ul li a").forEach(link => {
+        if (link.getAttribute("href") === currentPage) {
+          link.classList.add("active");
+        }
+      });
+
+      // Keyboard navigation
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          const focused = document.activeElement;
+          if (focused.classList.contains("scene-card")) {
+            focused.click();
+          }
+        }
+      });
+
+      // Welcome toast
+      setTimeout(() => showToast("Welcome to JobFit AI! Scroll to explore."), 1000);
     </script>
   </body>
 </html>

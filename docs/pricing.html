@@ -24,6 +24,8 @@
         --border: rgba(248, 250, 252, 0.16);
         --glass: rgba(15, 23, 42, 0.5);
         --shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+        --success: #22c55e;
+        --warning: #f59e0b;
       }
 
       * {
@@ -39,11 +41,17 @@
           var(--bg);
         color: var(--ink);
         line-height: 1.6;
+        min-height: 100vh;
       }
 
       a {
         color: inherit;
         text-decoration: none;
+        transition: color 0.2s ease;
+      }
+
+      a:hover {
+        color: var(--accent);
       }
 
       .container {
@@ -80,6 +88,11 @@
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.08em;
+        transition: transform 0.2s ease;
+      }
+
+      .logo:hover {
+        transform: scale(1.02);
       }
 
       .logo-mark {
@@ -89,6 +102,10 @@
         display: grid;
         place-items: center;
         font-weight: 700;
+        background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
       }
 
       nav ul {
@@ -102,6 +119,33 @@
         letter-spacing: 0.08em;
       }
 
+      nav ul li a {
+        position: relative;
+        padding: 4px 0;
+      }
+
+      nav ul li a::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background: var(--accent);
+        transition: width 0.3s ease;
+      }
+
+      nav ul li a:hover::after,
+      nav ul li a.active::after {
+        width: 100%;
+      }
+
+      .cta {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
       .btn {
         padding: 10px 18px;
         border: 2px solid var(--ink);
@@ -110,6 +154,35 @@
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.08em;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        font-size: 0.85rem;
+      }
+
+      .btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        transition: left 0.5s ease;
+      }
+
+      .btn:hover::before {
+        left: 100%;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 20px rgba(56, 189, 248, 0.3);
+      }
+
+      .btn:active {
+        transform: translateY(0);
       }
 
       .btn.ghost {
@@ -117,9 +190,31 @@
         color: var(--ink);
       }
 
-      h1,
-      h2,
-      h3 {
+      .btn.ghost:hover {
+        background: rgba(248, 250, 252, 0.1);
+      }
+
+      .btn.primary {
+        background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+        border-color: transparent;
+        color: white;
+      }
+
+      .btn.primary:hover {
+        box-shadow: 0 4px 25px rgba(56, 189, 248, 0.5);
+      }
+
+      .btn.large {
+        padding: 14px 28px;
+        font-size: 0.9rem;
+      }
+
+      .btn.full-width {
+        width: 100%;
+        text-align: center;
+      }
+
+      h1, h2, h3 {
         font-family: "Space Grotesk", sans-serif;
       }
 
@@ -127,114 +222,811 @@
         padding: 60px 0;
       }
 
+      .hero {
+        text-align: center;
+        padding: 80px 0 40px;
+      }
+
+      .hero h1 {
+        font-size: clamp(2rem, 4vw, 3rem);
+        margin-bottom: 16px;
+      }
+
+      .hero p {
+        font-size: 1.1rem;
+        max-width: 600px;
+        margin: 0 auto;
+      }
+
+      .billing-toggle {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 16px;
+        margin-top: 32px;
+      }
+
+      .billing-toggle span {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.08em;
+      }
+
+      .toggle-switch {
+        position: relative;
+        width: 60px;
+        height: 32px;
+        background: rgba(248, 250, 252, 0.1);
+        border: 2px solid var(--ink);
+        border-radius: 16px;
+        cursor: pointer;
+        transition: background 0.3s ease;
+      }
+
+      .toggle-switch::after {
+        content: '';
+        position: absolute;
+        top: 4px;
+        left: 4px;
+        width: 20px;
+        height: 20px;
+        background: var(--ink);
+        border-radius: 50%;
+        transition: transform 0.3s ease;
+      }
+
+      .toggle-switch.active {
+        background: var(--accent);
+      }
+
+      .toggle-switch.active::after {
+        transform: translateX(28px);
+      }
+
+      .save-badge {
+        background: var(--success);
+        color: var(--bg);
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+
       .pricing-grid {
         display: grid;
         gap: 24px;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        align-items: start;
       }
 
       .card {
         border: 2px solid var(--ink);
-        padding: 24px;
+        padding: 32px 24px;
         background: rgba(248, 250, 252, 0.04);
+        transition: all 0.3s ease;
+        position: relative;
+      }
+
+      .card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
       }
 
       .card.featured {
         background: var(--glass);
         border: 2px solid var(--accent);
         box-shadow: var(--shadow);
+        transform: scale(1.02);
+      }
+
+      .card.featured:hover {
+        transform: scale(1.02) translateY(-8px);
+      }
+
+      .popular-badge {
+        position: absolute;
+        top: -12px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+        color: white;
+        padding: 6px 16px;
+        border-radius: 999px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .card h3 {
+        font-size: 1.4rem;
+        margin-bottom: 8px;
+      }
+
+      .price {
+        display: flex;
+        align-items: baseline;
+        gap: 4px;
+        margin: 16px 0;
+      }
+
+      .price .amount {
+        font-size: 2.5rem;
+        font-weight: 700;
+        font-family: "Space Grotesk", sans-serif;
+      }
+
+      .price .period {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .price .original {
+        text-decoration: line-through;
+        color: var(--muted);
+        font-size: 1.2rem;
+        margin-left: 8px;
+      }
+
+      .card-description {
+        color: var(--muted);
+        margin-bottom: 24px;
+        font-size: 0.95rem;
       }
 
       ul {
         list-style: none;
-        margin-top: 16px;
+        margin: 24px 0;
         display: grid;
-        gap: 8px;
+        gap: 12px;
+      }
+
+      ul li {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
         color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      ul li .check {
+        width: 20px;
+        height: 20px;
+        background: var(--success);
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        font-size: 12px;
+        color: var(--bg);
+      }
+
+      ul li .cross {
+        width: 20px;
+        height: 20px;
+        background: rgba(248, 250, 252, 0.1);
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .faq-section {
+        padding: 80px 0;
+      }
+
+      .faq-section h2 {
+        text-align: center;
+        font-size: 2rem;
+        margin-bottom: 48px;
+      }
+
+      .faq-grid {
+        display: grid;
+        gap: 16px;
+        max-width: 800px;
+        margin: 0 auto;
+      }
+
+      .faq-item {
+        border: 2px solid var(--ink);
+        background: rgba(248, 250, 252, 0.04);
+        overflow: hidden;
+      }
+
+      .faq-question {
+        padding: 20px 24px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 600;
+        transition: background 0.2s ease;
+      }
+
+      .faq-question:hover {
+        background: rgba(248, 250, 252, 0.06);
+      }
+
+      .faq-question .toggle {
+        font-size: 1.5rem;
+        transition: transform 0.3s ease;
+      }
+
+      .faq-item.open .faq-question .toggle {
+        transform: rotate(45deg);
+      }
+
+      .faq-answer {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease, padding 0.3s ease;
+      }
+
+      .faq-item.open .faq-answer {
+        max-height: 200px;
+        padding: 0 24px 20px;
+      }
+
+      .faq-answer p {
+        color: var(--muted);
+      }
+
+      .cta-section {
+        text-align: center;
+        padding: 80px 0;
+        background: var(--glass);
+        margin: 60px 0;
+      }
+
+      .cta-section h2 {
+        font-size: 2rem;
+        margin-bottom: 16px;
+      }
+
+      .cta-section p {
+        color: var(--muted);
+        margin-bottom: 32px;
+        font-size: 1.1rem;
+      }
+
+      .cta-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+        flex-wrap: wrap;
       }
 
       footer {
         border-top: 3px solid var(--ink);
         padding: 40px 0 60px;
       }
+
+      .footer-grid {
+        display: grid;
+        gap: 24px;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      }
+
+      .footer-grid a {
+        display: block;
+        padding: 4px 0;
+      }
+
+      .social-links {
+        display: flex;
+        gap: 12px;
+        margin-top: 16px;
+      }
+
+      .social-links a {
+        width: 40px;
+        height: 40px;
+        border: 2px solid var(--ink);
+        display: grid;
+        place-items: center;
+        transition: all 0.3s ease;
+      }
+
+      .social-links a:hover {
+        background: var(--accent);
+        border-color: var(--accent);
+        transform: translateY(-2px);
+      }
+
+      /* Contact Modal */
+      .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+      }
+
+      .modal-overlay.active {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .modal {
+        background: var(--bg);
+        border: 2px solid var(--ink);
+        padding: 32px;
+        width: min(500px, 92%);
+        max-height: 90vh;
+        overflow-y: auto;
+        transform: translateY(20px);
+        transition: transform 0.3s ease;
+      }
+
+      .modal-overlay.active .modal {
+        transform: translateY(0);
+      }
+
+      .modal h2 {
+        margin-bottom: 24px;
+      }
+
+      .modal-close {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        background: none;
+        border: none;
+        color: var(--ink);
+        font-size: 1.5rem;
+        cursor: pointer;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.08em;
+      }
+
+      .form-group input,
+      .form-group textarea,
+      .form-group select {
+        width: 100%;
+        padding: 12px 14px;
+        border: 2px solid var(--ink);
+        background: rgba(8, 10, 20, 0.8);
+        color: var(--ink);
+        font-family: inherit;
+        font-size: 1rem;
+      }
+
+      .form-group textarea {
+        min-height: 120px;
+        resize: vertical;
+      }
+
+      .form-group input:focus,
+      .form-group textarea:focus,
+      .form-group select:focus {
+        outline: none;
+        border-color: var(--accent);
+      }
+
+      /* Toast */
+      .toast {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        padding: 16px 24px;
+        background: var(--glass);
+        border: 2px solid var(--success);
+        border-radius: 8px;
+        backdrop-filter: blur(10px);
+        transform: translateX(120%);
+        transition: transform 0.3s ease;
+        z-index: 1000;
+      }
+
+      .toast.show {
+        transform: translateX(0);
+      }
+
+      @media (max-width: 720px) {
+        .cta {
+          width: 100%;
+        }
+        .card.featured {
+          transform: none;
+        }
+        .card.featured:hover {
+          transform: translateY(-8px);
+        }
+      }
     </style>
   </head>
   <body>
     <header>
       <div class="container nav">
-        <div class="logo">
+        <a href="index.html" class="logo">
           <div class="logo-mark">JF</div>
           JobFit AI
-        </div>
+        </a>
         <nav>
           <ul>
             <li><a href="index.html">Home</a></li>
             <li><a href="platform.html">Platform</a></li>
             <li><a href="workspace.html">Workspace</a></li>
-            <li><a href="pricing.html">Pricing</a></li>
+            <li><a href="pricing.html" class="active">Pricing</a></li>
           </ul>
         </nav>
         <div class="cta">
           <a class="btn ghost" href="workspace.html">Launch Demo</a>
-          <a class="btn" href="#" role="button">Contact Sales</a>
+          <button class="btn" id="contactSalesBtn">Contact Sales</button>
         </div>
       </div>
     </header>
 
     <main>
-      <section>
+      <section class="hero">
         <div class="container">
           <h1>Pricing built for modern talent teams.</h1>
-          <p class="muted">Choose a plan that matches your hiring velocity and career stage.</p>
+          <p class="muted">Choose a plan that matches your hiring velocity and career stage. Start free, upgrade anytime.</p>
+          <div class="billing-toggle">
+            <span>Monthly</span>
+            <div class="toggle-switch" id="billingToggle"></div>
+            <span>Yearly</span>
+            <span class="save-badge">Save 20%</span>
+          </div>
         </div>
       </section>
 
       <section>
         <div class="container pricing-grid">
-          <div class="card">
+          <div class="card" id="starterCard">
             <h3>Starter</h3>
-            <p class="muted">$0 / month</p>
+            <div class="price">
+              <span class="amount" id="starterPrice">$0</span>
+              <span class="period">/ month</span>
+            </div>
+            <p class="card-description">Perfect for job seekers exploring AI-powered tools.</p>
+            <a href="workspace.html" class="btn full-width">Get Started Free</a>
             <ul>
-              <li>ATS scan + keyword highlights</li>
-              <li>1 resume profile</li>
-              <li>Basic job tracker</li>
+              <li><span class="check">&#10003;</span> ATS scan + keyword highlights</li>
+              <li><span class="check">&#10003;</span> 1 resume profile</li>
+              <li><span class="check">&#10003;</span> Basic job tracker (5 roles)</li>
+              <li><span class="check">&#10003;</span> Interview prep questions</li>
+              <li><span class="cross">&#10005;</span> Resume tailoring</li>
+              <li><span class="cross">&#10005;</span> Priority support</li>
             </ul>
           </div>
-          <div class="card featured">
+          <div class="card featured" id="proCard">
+            <span class="popular-badge">Most Popular</span>
             <h3>Pro</h3>
-            <p class="muted">$19 / month</p>
+            <div class="price">
+              <span class="amount" id="proPrice">$19</span>
+              <span class="period">/ month</span>
+              <span class="original" id="proOriginal" style="display: none;">$24</span>
+            </div>
+            <p class="card-description">For serious job seekers ready to land their dream role.</p>
+            <button class="btn primary full-width" onclick="selectPlan('pro')">Start 14-Day Free Trial</button>
             <ul>
-              <li>Unlimited resume tailoring</li>
-              <li>Interview prep kits</li>
-              <li>Advanced pipeline insights</li>
+              <li><span class="check">&#10003;</span> Everything in Starter</li>
+              <li><span class="check">&#10003;</span> Unlimited resume tailoring</li>
+              <li><span class="check">&#10003;</span> Advanced ATS optimization</li>
+              <li><span class="check">&#10003;</span> Interview prep kits</li>
+              <li><span class="check">&#10003;</span> Unlimited job tracking</li>
+              <li><span class="check">&#10003;</span> Email support</li>
             </ul>
           </div>
-          <div class="card">
+          <div class="card" id="teamsCard">
             <h3>Teams</h3>
-            <p class="muted">$49 / month</p>
+            <div class="price">
+              <span class="amount" id="teamsPrice">$49</span>
+              <span class="period">/ seat / month</span>
+              <span class="original" id="teamsOriginal" style="display: none;">$62</span>
+            </div>
+            <p class="card-description">For career coaches, recruiters, and talent teams.</p>
+            <button class="btn full-width" onclick="selectPlan('teams')">Start Team Trial</button>
             <ul>
-              <li>Shared talent dashboards</li>
-              <li>Coaching playbooks</li>
-              <li>Role benchmarking</li>
+              <li><span class="check">&#10003;</span> Everything in Pro</li>
+              <li><span class="check">&#10003;</span> Shared talent dashboards</li>
+              <li><span class="check">&#10003;</span> Coaching playbooks</li>
+              <li><span class="check">&#10003;</span> Role benchmarking</li>
+              <li><span class="check">&#10003;</span> Team analytics</li>
+              <li><span class="check">&#10003;</span> Priority support</li>
             </ul>
           </div>
-          <div class="card">
+          <div class="card" id="enterpriseCard">
             <h3>Enterprise</h3>
-            <p class="muted">Custom</p>
+            <div class="price">
+              <span class="amount">Custom</span>
+            </div>
+            <p class="card-description">For organizations with advanced security and compliance needs.</p>
+            <button class="btn full-width" id="enterpriseBtn">Contact Sales</button>
             <ul>
-              <li>SLAs + dedicated support</li>
-              <li>Custom analytics pipelines</li>
-              <li>Secure SSO + audit logs</li>
+              <li><span class="check">&#10003;</span> Everything in Teams</li>
+              <li><span class="check">&#10003;</span> SLAs + dedicated support</li>
+              <li><span class="check">&#10003;</span> Custom analytics pipelines</li>
+              <li><span class="check">&#10003;</span> SSO + SCIM provisioning</li>
+              <li><span class="check">&#10003;</span> Audit logs</li>
+              <li><span class="check">&#10003;</span> Custom integrations</li>
             </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="faq-section">
+        <div class="container">
+          <h2>Frequently Asked Questions</h2>
+          <div class="faq-grid">
+            <div class="faq-item">
+              <div class="faq-question" onclick="toggleFaq(this)">
+                <span>Can I change plans anytime?</span>
+                <span class="toggle">+</span>
+              </div>
+              <div class="faq-answer">
+                <p>Yes! You can upgrade, downgrade, or cancel your plan at any time. Changes take effect immediately, and we'll prorate any charges.</p>
+              </div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-question" onclick="toggleFaq(this)">
+                <span>What happens after my free trial?</span>
+                <span class="toggle">+</span>
+              </div>
+              <div class="faq-answer">
+                <p>After your 14-day trial, you'll be automatically subscribed to your chosen plan. You can cancel anytime before the trial ends to avoid charges.</p>
+              </div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-question" onclick="toggleFaq(this)">
+                <span>Is my data secure?</span>
+                <span class="toggle">+</span>
+              </div>
+              <div class="faq-answer">
+                <p>Absolutely. We use enterprise-grade encryption, SOC 2 compliance, and never share your data with third parties. Your resumes and personal information are always protected.</p>
+              </div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-question" onclick="toggleFaq(this)">
+                <span>Do you offer refunds?</span>
+                <span class="toggle">+</span>
+              </div>
+              <div class="faq-answer">
+                <p>We offer a 30-day money-back guarantee on all paid plans. If you're not satisfied, contact our support team for a full refund.</p>
+              </div>
+            </div>
+            <div class="faq-item">
+              <div class="faq-question" onclick="toggleFaq(this)">
+                <span>How does team billing work?</span>
+                <span class="toggle">+</span>
+              </div>
+              <div class="faq-answer">
+                <p>Team plans are billed per seat. You can add or remove team members anytime, and billing adjusts automatically based on your team size.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="cta-section">
+        <div class="container">
+          <h2>Ready to accelerate your career?</h2>
+          <p>Join thousands of professionals who've landed their dream jobs with JobFit AI.</p>
+          <div class="cta-buttons">
+            <a href="workspace.html" class="btn primary large">Start Free Trial</a>
+            <button class="btn ghost large" id="contactSalesBtn2">Talk to Sales</button>
           </div>
         </div>
       </section>
     </main>
 
     <footer>
-      <div class="container">
-        <p class="muted">Need the live demo? Jump into the <a href="workspace.html">workspace</a>.</p>
+      <div class="container footer-grid">
+        <div>
+          <a href="index.html" class="logo" style="margin-bottom: 12px;">
+            <div class="logo-mark">JF</div>
+            JobFit AI
+          </a>
+          <p class="muted">AI-powered career tools for modern job seekers.</p>
+          <div class="social-links">
+            <a href="https://github.com/Senpai-Sama7/JobFit-AI" target="_blank" rel="noopener" title="GitHub">GH</a>
+            <a href="https://twitter.com" target="_blank" rel="noopener" title="Twitter">TW</a>
+            <a href="https://linkedin.com" target="_blank" rel="noopener" title="LinkedIn">LI</a>
+          </div>
+        </div>
+        <div>
+          <strong>Product</strong>
+          <div style="display: grid; gap: 8px; margin-top: 12px;">
+            <a href="platform.html">Platform</a>
+            <a href="workspace.html">Workspace</a>
+            <a href="pricing.html">Pricing</a>
+          </div>
+        </div>
+        <div>
+          <strong>Resources</strong>
+          <div style="display: grid; gap: 8px; margin-top: 12px;">
+            <a href="workspace.html">Documentation</a>
+            <a href="workspace.html">API Reference</a>
+            <a href="https://github.com/Senpai-Sama7/JobFit-AI" target="_blank" rel="noopener">GitHub</a>
+          </div>
+        </div>
+        <div>
+          <strong>Contact</strong>
+          <div style="display: grid; gap: 8px; margin-top: 12px;">
+            <a href="mailto:hello@jobfit.ai">hello@jobfit.ai</a>
+            <a href="#" onclick="openContactModal(); return false;">Contact Sales</a>
+            <a href="workspace.html">Support</a>
+          </div>
+        </div>
+      </div>
+      <div class="container" style="text-align: center; padding-top: 32px; color: var(--muted); font-size: 0.85rem;">
+        &copy; 2025 JobFit AI. All rights reserved.
       </div>
     </footer>
+
+    <!-- Contact Sales Modal -->
+    <div class="modal-overlay" id="contactModal">
+      <div class="modal" style="position: relative;">
+        <button class="modal-close" onclick="closeContactModal()">&times;</button>
+        <h2>Contact Sales</h2>
+        <p class="muted" style="margin-bottom: 24px;">Tell us about your needs and we'll get back to you within 24 hours.</p>
+        <form id="contactForm" onsubmit="submitContactForm(event)">
+          <div class="form-group">
+            <label for="name">Full Name</label>
+            <input type="text" id="name" name="name" required placeholder="John Doe" />
+          </div>
+          <div class="form-group">
+            <label for="email">Work Email</label>
+            <input type="email" id="email" name="email" required placeholder="john@company.com" />
+          </div>
+          <div class="form-group">
+            <label for="company">Company</label>
+            <input type="text" id="company" name="company" required placeholder="Acme Inc." />
+          </div>
+          <div class="form-group">
+            <label for="teamSize">Team Size</label>
+            <select id="teamSize" name="teamSize" required>
+              <option value="">Select team size</option>
+              <option value="1-10">1-10 employees</option>
+              <option value="11-50">11-50 employees</option>
+              <option value="51-200">51-200 employees</option>
+              <option value="201-1000">201-1000 employees</option>
+              <option value="1000+">1000+ employees</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="message">How can we help?</label>
+            <textarea id="message" name="message" placeholder="Tell us about your needs..."></textarea>
+          </div>
+          <button type="submit" class="btn primary full-width">Send Message</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Toast notification -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+      // Billing toggle
+      const billingToggle = document.getElementById('billingToggle');
+      let isYearly = false;
+
+      const prices = {
+        monthly: { pro: 19, teams: 49 },
+        yearly: { pro: 15, teams: 39 }
+      };
+
+      billingToggle.addEventListener('click', () => {
+        isYearly = !isYearly;
+        billingToggle.classList.toggle('active', isYearly);
+        updatePrices();
+      });
+
+      function updatePrices() {
+        const proPriceEl = document.getElementById('proPrice');
+        const teamsPriceEl = document.getElementById('teamsPrice');
+        const proOriginalEl = document.getElementById('proOriginal');
+        const teamsOriginalEl = document.getElementById('teamsOriginal');
+
+        if (isYearly) {
+          proPriceEl.textContent = '$' + prices.yearly.pro;
+          teamsPriceEl.textContent = '$' + prices.yearly.teams;
+          proOriginalEl.textContent = '$' + prices.monthly.pro;
+          teamsOriginalEl.textContent = '$' + prices.monthly.teams;
+          proOriginalEl.style.display = 'inline';
+          teamsOriginalEl.style.display = 'inline';
+        } else {
+          proPriceEl.textContent = '$' + prices.monthly.pro;
+          teamsPriceEl.textContent = '$' + prices.monthly.teams;
+          proOriginalEl.style.display = 'none';
+          teamsOriginalEl.style.display = 'none';
+        }
+      }
+
+      // FAQ toggle
+      function toggleFaq(element) {
+        const faqItem = element.parentElement;
+        faqItem.classList.toggle('open');
+      }
+
+      // Contact Modal
+      function openContactModal() {
+        document.getElementById('contactModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeContactModal() {
+        document.getElementById('contactModal').classList.remove('active');
+        document.body.style.overflow = '';
+      }
+
+      // Close modal on overlay click
+      document.getElementById('contactModal').addEventListener('click', (e) => {
+        if (e.target.id === 'contactModal') {
+          closeContactModal();
+        }
+      });
+
+      // Close modal on Escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closeContactModal();
+        }
+      });
+
+      // Contact form submission
+      function submitContactForm(e) {
+        e.preventDefault();
+        const form = e.target;
+        const formData = new FormData(form);
+
+        // Simulate form submission
+        showToast('Thanks! We\'ll be in touch within 24 hours.');
+        closeContactModal();
+        form.reset();
+      }
+
+      // Plan selection
+      function selectPlan(plan) {
+        const billing = isYearly ? 'yearly' : 'monthly';
+        showToast(`Selected ${plan.charAt(0).toUpperCase() + plan.slice(1)} plan (${billing}). Redirecting...`);
+        setTimeout(() => {
+          window.location.href = 'workspace.html';
+        }, 1500);
+      }
+
+      // Toast notification
+      function showToast(message) {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 4000);
+      }
+
+      // Connect all Contact Sales buttons
+      document.getElementById('contactSalesBtn').addEventListener('click', openContactModal);
+      document.getElementById('contactSalesBtn2').addEventListener('click', openContactModal);
+      document.getElementById('enterpriseBtn').addEventListener('click', openContactModal);
+
+      // Mark active nav link
+      const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+      document.querySelectorAll('nav ul li a').forEach(link => {
+        if (link.getAttribute('href') === currentPage) {
+          link.classList.add('active');
+        }
+      });
+    </script>
   </body>
 </html>
